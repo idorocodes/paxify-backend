@@ -3,21 +3,24 @@ const bcrypt = require("bcrypt");
 
 // login with matric no
 const loginStudent = async (req, res) => {
-  const { matric_no, password } = req.body;
-
-  if (!matric_no || !password) {
-    return res
-      .status(400)
-      .json({ message: "Matric no and password are required" });
-  }
-
   try {
+  
+    const { matric_no, password } = req.body;
+  
+
+
+    if (!matric_no || !password) {
+      return res
+        .status(400)
+        .json({ message: "Matric no and password are required" });
+    }
+
     // Find the student by matric_no
     const { data: student, error } = await supabase
       .from("students")
-      .select("id, full_name, email, password_hash")
-      .eq("matric_no", matric_no.toLowerCase()) 
-      .single(); 
+      .select("id, full_name, email, matric_no, password_hash")
+      .eq("matric_no", matric_no.toLowerCase()) // normalize
+      .single();
 
     if (error || !student) {
       return res
@@ -37,14 +40,17 @@ const loginStudent = async (req, res) => {
       success: true,
       message: "Login successful",
       student: {
+        id: student.id,
         full_name: student.full_name,
         email: student.email,
-        matric_no,
+        matric_no: student.matric_no,
       },
     });
   } catch (err) {
     console.error("Login error:", err);
-    res.status(500).json({ message: "Server error", details: err.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", details: err.message });
   }
 };
 
