@@ -1,18 +1,19 @@
-📚 Paxify API
+Paxify API
 
-A RESTful API built with Node.js, Express, and Supabase to manage student registrations and logins. Supports storing student information securely, including hashed passwords, and allows login via matric number or JAMB registration number.
+A RESTful API built with Node.js, Express, and Supabase for managing student registrations and logins.
+Passwords are hashed with bcrypt for security.
 
 ⚡ Features
 
-Register new students with full details.
+Register new students with full name, email, and password
 
-Secure password storage using bcrypt hashing.
+Secure password storage using bcrypt
 
-Login with either matric_no or jamb_reg.
+Login using matric_no (case-insensitive)
 
-Validate and prevent duplicate registrations.
+Prevent duplicate registrations via email check
 
-REST API with JSON responses.
+REST API with JSON responses
 
 🛠 Technologies Used
 
@@ -27,160 +28,118 @@ dotenv – Environment variable management
 Postman / cURL – For API testing
 
 🏗 Setup
+1. Clone the repository
+git clone https://github.com/idorocodes/paxify-backend.git
+cd paxify-backend
 
-Clone the repository
+2. Install dependencies
+npm install
 
-> git clone https://github.com/idorocodes/paxify-backend.git
-cd student-api
+3. Configure environment variables
 
-
-Install dependencies
-
-> npm install
-
-
-Set up environment variables in a .env file:
+Create a .env file in the project root:
 
 SUPABASE_URL=https://your-supabase-url.supabase.co
 ANON_KEY=your-supabase-anon-key
 PORT=3000
 
-
-Run the server
-
+4. Run the server
 node index.js
-# Or use nodemon for auto-reload
+# or for auto-reload
 npx nodemon index.js
 
 
-Server will start on http://localhost:3000.
+Server will start on http://localhost:3000
+.
 
 🗂 API Endpoints
 1. Register Student
 
 POST /registerstudent
 
-Request Body (JSON):
-
- ``` json
+Request Body
 {
-  "first_name": "John",
-  "last_name": "Amos",
-  "matric_no": "CSC/2023/1095",
-  "jamb_reg": "20004556600",
+  "full_name": "Ademide Olamide",
   "email": "john@example.com",
-  "school_name": "FUOYE",
   "password": "securepassword123"
 }
 
-```
-
-Response (Success):
-``` json
-
+Success Response
 {
   "success": true,
   "message": "Student registered successfully",
   "student": {
-    "id": "uuid",
-    "first_name": "John",
-    "last_name": "Amos",
+    "full_name": "Ademide Olamide",
     "matric_no": "CSC/2023/1095",
-    "jamb_reg": "20004556600",
-    "email": "john@example.com",
-    "school_name": "FUOYE",
-    "created_at": "2025-08-29T15:57:01.705"
+    "email": "john@example.com"
   }
 }
 
-```
-Response (Conflict if already exists):
-``` json
-
+Conflict Response
 {
   "success": false,
-  "message": "Student with this email, matric number, or JAMB reg already exists"
+  "message": "Student with this email already exists"
 }
-```
 
 2. Login Student
 
 POST /loginstudent
 
-Request Body (JSON):
-``` json 
+Request Body
 {
-  "student_id": "CSC/2023/1095",
+  "matric_no": "CSC/2023/1095",
   "password": "securepassword123"
 }
 
-```
-### Notes:
-
-#### student_id can be either matric_no or jamb_reg.
-
-Response (Success):
-``` json
-
+Success Response
 {
   "success": true,
   "message": "Login successful",
   "student": {
-    "id": "uuid",
-    "first_name": "John",
-    "last_name": "Amos",
-    "matric_no": "CSC/2023/1095",
-    "jamb_reg": "20004556600",
+    "full_name": "Ademide Olamide",
     "email": "john@example.com",
-    "school_name": "FUOYE"
+    "matric_no": "CSC/2023/1095"
   }
 }
-```
 
-Response (Invalid credentials):
-``` json
-
+Invalid Credentials
 {
+  "success": false,
   "message": "Invalid credentials"
 }
-```
 
-Response (Student not found):
-``` json
+Student Not Found
 {
+  "success": false,
   "message": "Student not found"
 }
-```
 
 🔐 Security Notes
 
-Passwords are stored as bcrypt hashes — never store raw passwords.
+Passwords are hashed with bcrypt, never stored in plain text
 
-Make sure your .env file is never pushed to GitHub.
+Do not commit .env files to GitHub
 
-Use HTTPS in production for secure transmission.
+Use HTTPS in production to protect requests
 
-📝 Database Schema (PostgreSQL / Supabase)
-
-``` sql
+📝 Database Schema (Simplified for current version)
 CREATE TABLE students (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  matric_no TEXT UNIQUE NOT NULL,
-  jamb_reg TEXT UNIQUE NOT NULL,
+  full_name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
-  school_name TEXT NOT NULL,
+  matric_no TEXT UNIQUE,
   password_hash TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
-```
+
 🚀 Future Improvements
 
-JWT-based authentication for session management.
+JWT-based authentication for session management
 
-Reset password functionality.
+Add jamb_reg, school_name, and split first_name/last_name
 
-Support login by email as well.
+Reset password functionality
 
-API rate limiting and request validation.
+Support login by email as well
+
+API rate limiting & validation middleware
