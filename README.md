@@ -1,70 +1,81 @@
-Paxify API
+# Paxify API
 
-A RESTful API built with Node.js, Express, and Supabase for managing student registrations and logins.
-Passwords are hashed with bcrypt for security.
+A RESTful API built with Node.js, Express, and Supabase for managing student registrations and logins. Passwords are hashed with bcrypt for security.
 
-⚡ Features
+## ⚡ Features
 
-Register new students with full name, email, and password
+- Register new students with full name, email, and password
+- Secure password storage using bcrypt
+- Login using matric_no (case-insensitive)
+- Prevent duplicate registrations via email check
+- REST API with JSON responses
 
-Secure password storage using bcrypt
+## 🛠 Technologies Used
 
-Login using matric_no (case-insensitive)
+- Node.js & Express – Backend server
+- Supabase – PostgreSQL database + REST interface
+- bcrypt – Password hashing
+- dotenv – Environment variable management
+- Postman / cURL – For API testing
 
-Prevent duplicate registrations via email check
+## 🏗 Setup
 
-REST API with JSON responses
+1. **Clone the repository**
 
-🛠 Technologies Used
+   ```bash
+   git clone https://github.com/idorocodes/paxify-backend.git
+   cd paxify-backend
+   ```
 
-Node.js & Express – Backend server
+2. **Install dependencies**
 
-Supabase – PostgreSQL database + REST interface
+   ```bash
+   npm install
+   ```
 
-bcrypt – Password hashing
+3. **Configure environment variables**
 
-dotenv – Environment variable management
+   Create a `.env` file in the project root:
 
-Postman / cURL – For API testing
+   ```
+   SUPABASE_URL=https://your-supabase-url.supabase.co
+   ANON_KEY=your-supabase-anon-key
+   PORT=3000
+   ```
 
-🏗 Setup
-1. Clone the repository
-git clone https://github.com/idorocodes/paxify-backend.git
-cd paxify-backend
+4. **Run the server**
 
-2. Install dependencies
-npm install
+   ```bash
+   node index.js
+   ```
 
-3. Configure environment variables
+   Or for auto-reload:
 
-Create a .env file in the project root:
+   ```bash
+   npx nodemon index.js
+   ```
 
-SUPABASE_URL=https://your-supabase-url.supabase.co
-ANON_KEY=your-supabase-anon-key
-PORT=3000
+   Server will start on `http://localhost:3000`.
 
-4. Run the server
-node index.js
-# or for auto-reload
-npx nodemon index.js
+## 🗂 API Endpoints
 
+### 1. Register Student
 
-Server will start on http://localhost:3000
-.
+**POST** `/registerstudent`
 
-🗂 API Endpoints
-1. Register Student
+**Request Body**
 
-POST /registerstudent
-
-Request Body
+```json
 {
   "full_name": "Ademide Olamide",
   "email": "john@example.com",
   "password": "securepassword123"
 }
+```
 
-Success Response
+**Success Response**
+
+```json
 {
   "success": true,
   "message": "Student registered successfully",
@@ -74,24 +85,33 @@ Success Response
     "email": "john@example.com"
   }
 }
+```
 
-Conflict Response
+**Conflict Response**
+
+```json
 {
   "success": false,
   "message": "Student with this email already exists"
 }
+```
 
-2. Login Student
+### 2. Login Student
 
-POST /loginstudent
+**POST** `/loginstudent`
 
-Request Body
+**Request Body**
+
+```json
 {
   "matric_no": "CSC/2023/1095",
   "password": "securepassword123"
 }
+```
 
-Success Response
+**Success Response**
+
+```json
 {
   "success": true,
   "message": "Login successful",
@@ -101,28 +121,35 @@ Success Response
     "matric_no": "CSC/2023/1095"
   }
 }
+```
 
-Invalid Credentials
+**Invalid Credentials**
+
+```json
 {
   "success": false,
   "message": "Invalid credentials"
 }
+```
 
-Student Not Found
+**Student Not Found**
+
+```json
 {
   "success": false,
   "message": "Student not found"
 }
+```
 
-🔐 Security Notes
+## 🔐 Security Notes
 
-Passwords are hashed with bcrypt, never stored in plain text
+- Passwords are hashed with bcrypt, never stored in plain text
+- Do not commit `.env` files to GitHub
+- Use HTTPS in production to protect requests
 
-Do not commit .env files to GitHub
+## 📝 Database Schema (Simplified for current version)
 
-Use HTTPS in production to protect requests
-
-📝 Database Schema (Simplified for current version)
+```sql
 CREATE TABLE students (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   full_name TEXT NOT NULL,
@@ -131,15 +158,12 @@ CREATE TABLE students (
   password_hash TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT now()
 );
+```
 
-🚀 Future Improvements
+## 🚀 Future Improvements
 
-JWT-based authentication for session management
-
-Add jamb_reg, school_name, and split first_name/last_name
-
-Reset password functionality
-
-Support login by email as well
-
-API rate limiting & validation middleware
+- JWT-based authentication for session management
+- Add `jamb_reg`, `school_name`, and split `first_name`/`last_name`
+- Reset password functionality
+- Support login by email as well
+- API rate limiting & validation middleware
