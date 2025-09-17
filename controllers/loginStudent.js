@@ -4,28 +4,30 @@ const bcrypt = require("bcrypt");
 // login with matric no
 const loginStudent = async (req, res) => {
   try {
-  
-    const { matric_no, password } = req.body;
-  
+    let { matric_no, password } = req.body;
 
+    // Trim & normalize inputs
+    matric_no = matric_no?.trim().toLowerCase();
+    password = password?.trim();
 
     if (!matric_no || !password) {
       return res
         .status(400)
-        .json({ message: "Matric no and password are required" });
+        .json({ success: false, message: "Matric number and password are required" });
     }
 
     // Find the student by matric_no
     const { data: student, error } = await supabase
       .from("students")
       .select("id, full_name, email, matric_no, password_hash")
-      .eq("matric_no", matric_no.toLowerCase()) // normalize
+      .eq("matric_no", matric_no)
       .single();
 
+    // Avoid revealing which part is wrong
     if (error || !student) {
       return res
-        .status(404)
-        .json({ success: false, message: "Student not found" });
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     // Compare password
@@ -36,7 +38,14 @@ const loginStudent = async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    res.json({
+    // Optional: update last login timestamp
+    await supabase
+      .from("students")
+      .update({ last_login: new Date().toISOString() })
+      .eq("id", student.id);
+
+    // Success response
+    res.status(200).json({
       success: true,
       message: "Login successful",
       student: {
