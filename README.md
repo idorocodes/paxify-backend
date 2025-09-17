@@ -69,6 +69,7 @@ A RESTful API built with Node.js, Express, and Supabase for managing student reg
 {
   "full_name": "Ademide Olamide",
   "email": "john@example.com",
+  "matric_no":"csc/2200/1100"
   "password": "securepassword123"
 }
 ```
