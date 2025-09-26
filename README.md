@@ -142,6 +142,37 @@ A RESTful API built with Node.js, Express, and Supabase for managing student reg
 }
 ```
 
+### 3. Forgot Password
+
+**POST** `/forgotpassword`
+
+**Request Body**
+
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Success Response**
+
+```json
+{
+  "success": true,
+  "message": "If the email exists, a reset link has been sent",
+  "resetToken": "a1b2c3d4e5f6789..."
+}
+```
+
+**Validation Error**
+
+```json
+{
+  "success": false,
+  "message": "Email is required"
+}
+```
+
 ## 🔐 Security Notes
 
 - Passwords are hashed with bcrypt, never stored in plain text
@@ -157,6 +188,8 @@ CREATE TABLE students (
   email TEXT UNIQUE NOT NULL,
   matric_no TEXT UNIQUE,
   password_hash TEXT NOT NULL,
+  reset_token TEXT,
+  reset_token_expiry TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 ```
@@ -165,6 +198,6 @@ CREATE TABLE students (
 
 - JWT-based authentication for session management
 - Add `jamb_reg`, `school_name`, and split `first_name`/`last_name`
-- Reset password functionality
+- Complete password reset flow with email notifications
 - Support login by email as well
 - API rate limiting & validation middleware
