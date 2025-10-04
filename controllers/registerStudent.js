@@ -1,5 +1,6 @@
 const supabase = require("../database/dbconfig");
 const bcrypt = require("bcrypt");
+const { sendWelcomeEmail } = require("../services/emailService");
 
 
 
@@ -54,6 +55,16 @@ const registerStudent = async (req, res) => {
     if (insertError) {
       console.error("Database insert error:", insertError);
       return res.status(500).json({ success: false, message: "Failed to register student", details: insertError.message });
+    }
+
+    // Send welcome email (optional - don't fail registration if email fails)
+    if (process.env.SEND_WELCOME_EMAIL === 'true') {
+      try {
+        await sendWelcomeEmail(email, full_name);
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+        // Continue with registration success even if email fails
+      }
     }
 
     // Success response

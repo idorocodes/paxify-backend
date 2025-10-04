@@ -1,22 +1,41 @@
-# Paxify API
+# Paxify Backend API
 
-A RESTful API built with Node.js, Express, and Supabase for managing student registrations and logins. Passwords are hashed with bcrypt for security.
+A comprehensive RESTful API built with Node.js, Express, and Supabase for managing student authentication and account management. Features secure password handling, email services, and comprehensive API documentation.
 
 ## ⚡ Features
 
-- Register new students with full name, email, and password
-- Secure password storage using bcrypt
-- Login using matric_no (case-insensitive)
-- Prevent duplicate registrations via email check
-- REST API with JSON responses
+- **Student Authentication**
+  - Register new students with full name, email, matric number, and password
+  - Secure password storage using bcrypt hashing
+  - Student login with email and password
+  - Prevent duplicate registrations via email/matric number validation
+
+- **Email Services**
+  - Password reset emails with secure tokens
+  - Optional welcome emails for new registrations
+  - HTML and text email templates
+  - Configurable email service providers
+
+- **API Documentation**
+  - Interactive Swagger UI documentation
+  - Complete API schema definitions
+  - Request/response examples
+  - Available at `/api-docs` endpoint
+
+- **Security & Validation**
+  - Input validation and sanitization
+  - Secure password hashing with bcrypt
+  - Protected email enumeration prevention
+  - Environment-based configuration
 
 ## 🛠 Technologies Used
 
-- Node.js & Express – Backend server
-- Supabase – PostgreSQL database + REST interface
-- bcrypt – Password hashing
-- dotenv – Environment variable management
-- Postman / cURL – For API testing
+- **Backend**: Node.js & Express.js
+- **Database**: Supabase (PostgreSQL)
+- **Security**: bcrypt for password hashing
+- **Email**: Nodemailer with multiple provider support
+- **Documentation**: Swagger UI with OpenAPI 3.0
+- **Environment**: dotenv for configuration management
 
 ## 🏗 Setup
 
@@ -35,27 +54,88 @@ A RESTful API built with Node.js, Express, and Supabase for managing student reg
 
 3. **Configure environment variables**
 
-   Create a `.env` file in the project root:
+   Create a `.env` file in the project root (see `.env.example` for reference):
 
-   ```
+   ```env
+   # Server Configuration
+   PORT=3000
+   NODE_ENV=development
+   
+   # Database Configuration
    SUPABASE_URL=https://your-supabase-url.supabase.co
    ANON_KEY=your-supabase-anon-key
-   PORT=3000
+   
+   # Email Configuration
+   EMAIL_SERVICE=gmail
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASSWORD=your-app-specific-password
+   EMAIL_FROM=Paxify <noreply@paxify.com>
+   
+   # Frontend URL (for email links)
+   FRONTEND_URL=http://localhost:3000
+   
+   # Optional Features
+   SEND_WELCOME_EMAIL=true
    ```
 
 4. **Run the server**
 
+   Development mode with auto-restart:
    ```bash
-   node index.js
+   npm run dev
+   ```
+   
+   Production mode:
+   ```bash
+   npm start
    ```
 
-   Or for auto-reload:
+5. **Access API Documentation**
 
-   ```bash
-   npx nodemon index.js
-   ```
+   Once the server is running, visit: `http://localhost:3000/api-docs`
 
    Server will start on `http://localhost:3000`.
+
+## 📧 Email Configuration
+
+### Email Service Setup
+
+The application uses Nodemailer for sending emails. Configure your preferred email service in the `.env` file:
+
+#### Gmail Setup
+1. Enable 2-factor authentication on your Gmail account
+2. Generate an App-Specific password
+3. Use these settings in your `.env`:
+   ```env
+   EMAIL_SERVICE=gmail
+   EMAIL_USER=your-gmail@gmail.com
+   EMAIL_PASSWORD=your-app-specific-password
+   ```
+
+#### Other Email Providers
+You can use other SMTP providers by changing the `EMAIL_SERVICE` or configuring custom SMTP settings in `services/emailService.js`.
+
+### Email Features
+- **Password Reset**: Sends secure reset links with expiring tokens
+- **Welcome Emails**: Optional welcome emails for new registrations (set `SEND_WELCOME_EMAIL=true`)
+- **HTML Templates**: Professional email templates with responsive design
+- **Error Handling**: Graceful fallback if email service is unavailable
+
+## 📖 API Documentation
+
+Interactive API documentation is available at `/api-docs` when the server is running. The documentation includes:
+
+- Complete API reference with request/response schemas
+- Interactive testing interface
+- Authentication requirements
+- Error response examples
+- Data validation rules
+
+Key endpoints documented:
+- `GET /` - Health check
+- `POST /registerstudent` - Student registration
+- `POST /loginstudent` - Student authentication  
+- `POST /forgotpassword` - Password reset request
 
 ## 🗂 API Endpoints
 
@@ -194,10 +274,41 @@ CREATE TABLE students (
 );
 ```
 
-## 🚀 Future Improvements
+## � Project Structure
 
+```
+paxify-backend/
+├── config/
+│   └── swagger.js           # Swagger/OpenAPI configuration
+├── controllers/
+│   ├── loginStudent.js      # Student login logic
+│   ├── registerStudent.js   # Student registration logic
+│   └── forgotPassword.js    # Password reset logic
+├── database/
+│   └── dbconfig.js         # Supabase database configuration
+├── routes/
+│   └── authRoutes.js       # API route definitions with Swagger docs
+├── services/
+│   └── emailService.js     # Email sending functionality
+├── .env.example           # Environment variables template
+├── package.json           # Project dependencies
+├── server.js             # Main application entry point
+└── README.md            # Project documentation
+```
+
+## �🚀 Recent Additions
+
+### ✅ Completed Features
+- ✨ **Nodemailer Integration**: Professional email service with HTML templates
+- 📚 **Swagger Documentation**: Interactive API docs at `/api-docs` 
+- 🔐 **Enhanced Password Reset**: Email-based password recovery with secure tokens
+- 📧 **Welcome Emails**: Optional onboarding emails for new students
+- 🛡️ **Security Improvements**: Enhanced input validation and error handling
+
+### 🎯 Future Improvements
 - JWT-based authentication for session management
 - Add `jamb_reg`, `school_name`, and split `first_name`/`last_name`
-- Complete password reset flow with email notifications
-- Support login by email as well
-- API rate limiting & validation middleware
+- Rate limiting & validation middleware
+- Password reset frontend integration
+- Multi-language email templates
+- Email verification for new accounts

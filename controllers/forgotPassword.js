@@ -1,5 +1,6 @@
 const supabase = require("../database/dbconfig");
 const crypto = require("crypto");
+const { sendPasswordResetEmail } = require("../services/emailService");
 
 const forgotPassword = async (req, res) => {
   try {
@@ -45,11 +46,26 @@ const forgotPassword = async (req, res) => {
         .json({ success: false, message: "Failed to generate reset token" });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "If the email exists, a reset link has been sent",
-      resetToken: resetToken
-    });
+    // Send password reset email
+    const emailResult = await sendPasswordResetEmail(
+      student.email, 
+      resetToken, 
+      student.full_name
+    );
+
+    if (emailResult.success) {
+      res.status(200).json({
+        success: true,
+        message: "If the email exists, a reset link has been sent"
+      });
+    } else {
+      console.error("Failed to send reset email:", emailResult.error);
+      // Still return success to prevent email enumeration
+      res.status(200).json({
+        success: true,
+        message: "If the email exists, a reset link has been sent"
+      });
+    }
 
   } catch (err) {
     console.error("Forgot password error:", err);
