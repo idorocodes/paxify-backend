@@ -1,7 +1,7 @@
 const express = require("express");
 const loginStudent = require("../controllers/loginStudent");
 const registerStudent = require("../controllers/registerStudent");
-const forgotPassword = require("../controllers/forgotPassword");
+const { forgotPassword, resetPassword } = require("../controllers/auth/passwordResetController");
 const router = express.Router();
 
 /**
@@ -23,7 +23,7 @@ const router = express.Router();
  *                   type: string
  *                   example: "server working"
  */
-router.get("/",(req,res)=>res.json({"message":"server working"}));
+router.get("/", (req, res) => res.json({ "message": "server working" }));
 
 /**
  * @swagger
@@ -128,43 +128,150 @@ router.post('/loginstudent',loginStudent);
 
 /**
  * @swagger
- * /forgotpassword:
+ * /forgot-password:
  *   post:
  *     summary: Request password reset
- *     description: Sends a password reset email to the student
+ *     description: Sends a 6-digit verification code to the user's email address. The code is valid for 30 minutes.
  *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ForgotPasswordRequest'
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The email address associated with the user account
  *     responses:
  *       200:
- *         description: Password reset email sent successfully
+ *         description: Verification code sent successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ApiResponse'
- *       400:
- *         description: Bad request - Email is required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Verification code sent to your email
  *       404:
- *         description: Student not found
+ *         description: User not found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Email address not found
  *       500:
- *         description: Internal server error
+ *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Failed to process password reset request
  */
-router.post('/forgotpassword',forgotPassword);
+router.post("/forgot-password", forgotPassword);
+
+
+
+/**
+ * @swagger
+ * /reset-password:
+ *   post:
+ *     summary: Reset password with verification code
+ *     description: Validates the verification code and updates the user's password. The code must be valid and not expired.
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [new_password, confirm_password, code]
+ *             properties:
+ *               new_password:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: The new password to set
+ *               confirm_password:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: Must match new_password
+ *               code:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *                 description: The 6-digit verification code sent to email
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Password updated successfully
+ *       400:
+ *         description: Invalid request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Passwords do not match
+ *       404:
+ *         description: Invalid or expired code
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Invalid or expired verification code
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Failed to update password
+ */
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

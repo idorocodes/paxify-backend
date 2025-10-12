@@ -32,30 +32,20 @@ const sendEmail = async (to, subject, htmlContent, textContent = '') => {
   }
 };
 
-// Send password reset email
-const sendPasswordResetEmail = async (email, resetToken, studentName) => {
-  const subject = 'Password Reset Request - Paxify';
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+// Send password reset email with verification code
+const sendPasswordResetEmail = async (email, code, name) => {
+  const subject = 'Password Reset Verification Code - Paxify';
   
   const htmlContent = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333;">Password Reset Request</h2>
-      <p>Hello ${studentName},</p>
-      <p>You requested a password reset for your Paxify account. Click the button below to reset your password:</p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${resetUrl}" 
-           style="background-color: #007bff; color: white; padding: 12px 30px; 
-                  text-decoration: none; border-radius: 5px; display: inline-block;">
-          Reset Password
-        </a>
+      <h2 style="color: #333;">Reset Your Password</h2>
+      <p>Hi ${name},</p>
+      <p>We received a request to reset your password. Please use the following verification code to complete the process:</p>
+      <div style="background-color: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
+        ${code}
       </div>
-      <p style="color: #666; font-size: 14px;">
-        If the button doesn't work, copy and paste this link into your browser:<br>
-        <a href="${resetUrl}">${resetUrl}</a>
-      </p>
-      <p style="color: #666; font-size: 14px;">
-        This link will expire in 1 hour. If you didn't request this password reset, please ignore this email.
-      </p>
+      <p>This code will expire in 30 minutes.</p>
+      <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
       <hr style="border: 1px solid #eee; margin: 30px 0;">
       <p style="color: #999; font-size: 12px;">
         This is an automated email from Paxify. Please do not reply to this email.
@@ -64,14 +54,17 @@ const sendPasswordResetEmail = async (email, resetToken, studentName) => {
   `;
   
   const textContent = `
-    Password Reset Request
-    
-    Hello ${studentName},
-    
-    You requested a password reset for your Paxify account. 
-    Please visit this link to reset your password: ${resetUrl}
-    
-    This link will expire in 1 hour. If you didn't request this password reset, please ignore this email.
+    Password Reset Verification Code
+
+    Hi ${name},
+
+    We received a request to reset your password. Please use the following verification code to complete the process:
+
+    ${code}
+
+    This code will expire in 30 minutes.
+
+    If you did not request a password reset, please ignore this email or contact support if you have concerns.
   `;
 
   return await sendEmail(email, subject, htmlContent, textContent);
