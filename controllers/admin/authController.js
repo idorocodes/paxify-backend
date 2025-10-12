@@ -1,6 +1,6 @@
-const supabase = require("../../database/dbconfig");
+const supabase = require('../../config/supabase');
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { generateAdminToken } = require('../../utils/jwt');
 
 /**
  * Register a new admin account (Only super admins can create other admins)
@@ -8,7 +8,8 @@ const jwt = require("jsonwebtoken");
 const registerAdmin = async (req, res) => {
     try {
         // Check if requester is a super admin
-        const requesterId = req.user.id;
+        // authenticateAdmin middleware attaches the decoded token to req.admin
+        const requesterId = req.admin?.sub || req.admin?.user_id || req.admin?.id;
         const { data: requester, error: requesterError } = await supabase
             .from("users")
             .select("is_admin, role")
@@ -22,7 +23,7 @@ const registerAdmin = async (req, res) => {
             });
         }
 
-        let { first_name, last_name, email, password, role, department, permissions } = req.body;
+    let { first_name, last_name, email, password, role, department } = req.body;
 
         // Trim inputs
         first_name = first_name?.trim();
@@ -74,7 +75,6 @@ const registerAdmin = async (req, res) => {
                 is_admin: true,
                 role,
                 department,
-                permissions,
                 created_at: new Date().toISOString()
             }])
             .select('id, first_name, last_name, email, role, department, created_at');
@@ -126,22 +126,32 @@ const loginAdmin = async (req, res) => {
 
         // Find the admin
         const { data: user, error } = await supabase
-            .from("users")
-            .select("id, first_name, last_name, email, password_hash, role, department, permissions")
-            .eq("email", email)
-            .eq("is_admin", true)
+            .from('users')
+            .select('id, first_name, last_name, email, password_hash, role, department')
+            .eq('email', email)
+            .eq('is_admin', true)
             .single();
 
-        if (error || !user) {
+        if (error) {
+            console.error('Database query error (admin login):', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Database error while attempting to login'
+            });
+        }
+
+        if (!user) {
+            console.warn(`Admin login attempt: user not found for email=${email}`);
             return res.status(401).json({
                 success: false,
-                message: "Invalid credentials"
+                message: 'Invalid credentials'
             });
         }
 
         // Compare password
         const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
+            console.warn(`Admin login attempt: password mismatch for user id=${user.id}`);
             return res.status(401).json({
                 success: false,
                 message: "Invalid credentials"
@@ -154,16 +164,8 @@ const loginAdmin = async (req, res) => {
             .update({ last_login: new Date().toISOString() })
             .eq("id", user.id);
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { 
-                user_id: user.id,
-                is_admin: true,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        // Generate JWT token using the shared helper (includes sub and type)
+        const token = generateAdminToken({ id: user.id, email: user.email, role: user.role });
 
         // Remove password_hash from response
         delete user.password_hash;
