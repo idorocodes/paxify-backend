@@ -8,24 +8,26 @@ const { sendWelcomeEmail } = require("../../services/emailService");
  */
 const registerStudent = async (req, res) => {
     try {
-        let { full_name, email, password, matric_number } = req.body;
+        let { full_name, first_name, last_name, email, password, matric_number } = req.body;
 
-        // Split full name into first and last name
-        let first_name, last_name;
-        if (full_name) {
+        // Support either a full_name string or separate first_name and last_name fields
+        if (full_name && (!first_name || !last_name)) {
             const nameParts = full_name.trim().split(' ');
             first_name = nameParts[0];
             last_name = nameParts.slice(1).join(' '); // Everything after the first name
-            
-            if (!last_name) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Please provide both first and last name"
-                });
-            }
         }
 
-        // Trim inputs
+        // If only one of first_name/last_name provided, require both
+        if ((first_name && !last_name) || (!first_name && last_name)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide both first_name and last_name"
+            });
+        }
+
+        // Trim and normalize inputs
+        first_name = first_name?.trim();
+        last_name = last_name?.trim();
         email = email?.trim().toLowerCase();
         matric_number = matric_number?.trim().toUpperCase();
 
