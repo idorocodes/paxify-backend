@@ -43,43 +43,6 @@ const passwordResetController = require('../../controllers/auth/passwordResetCon
  */
 router.post('/forgot-password', passwordResetController.forgotPassword);
 
-/**
- * @swagger
- * /api/v1/auth/verify-code:
- *   post:
- *     summary: Verify reset code
- *     description: Verify the 6-digit code sent to user's email
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [code]
- *             properties:
- *               code:
- *                 type: string
- *                 minLength: 6
- *                 maxLength: 6
- *                 example: "123456"
- *     responses:
- *       200:
- *         description: Code verified successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Code verified successfully
- *       400:
- *         description: Invalid or expired code
- */
 
 /**
  * @swagger
