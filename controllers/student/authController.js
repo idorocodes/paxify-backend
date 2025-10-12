@@ -126,26 +126,45 @@ const registerStudent = async (req, res) => {
  */
 const loginStudent = async (req, res) => {
     try {
-        let { matric_number, password } = req.body;
+        // Accept either: { identifier, password } where identifier can be email or matric_number
+        // or classic { email, matric_number, password }
+        let { identifier, email, matric_number, password } = req.body;
 
-        // Trim inputs
-        matric_number = matric_number?.trim().toUpperCase();
         password = password?.trim();
 
-        if (!matric_number || !password) {
+        // Normalize inputs
+        email = email?.trim().toLowerCase();
+        matric_number = matric_number?.trim().toUpperCase();
+        if (identifier) {
+            identifier = identifier.trim();
+            // guess if identifier is email or matric number
+            if (identifier.includes('@')) email = identifier.toLowerCase();
+            else matric_number = identifier.toUpperCase();
+        }
+
+        if ((!email && !matric_number) || !password) {
             return res.status(400).json({
                 success: false,
-                message: "Matric number and password are required"
+                message: "Provide an email or matric_number and a password"
             });
         }
 
-        // Find the student
-        const { data: user, error } = await supabase
+        // Build query to find the student by email OR matric_number
+        let query = supabase
             .from("users")
             .select("id, first_name, last_name, email, matric_number, password_hash")
-            .eq("matric_number", matric_number)
-            .eq("is_admin", false)
-            .single();
+            .eq("is_admin", false);
+
+        if (email && matric_number) {
+            // if both provided, prefer exact match on email first, otherwise try matric_number
+            query = query.or(`email.eq.${email},matric_number.eq.${matric_number}`);
+        } else if (email) {
+            query = query.eq('email', email);
+        } else {
+            query = query.eq('matric_number', matric_number);
+        }
+
+        const { data: user, error } = await query.single();
 
         if (error || !user) {
             return res.status(401).json({

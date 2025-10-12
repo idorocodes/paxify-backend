@@ -84,6 +84,7 @@ router.post('/register', registerStudent);
  *   post:
  *     summary: Login a student
  *     tags: [Student Authentication]
+ *     description: Login accepts either an email or matric_number. You can send { identifier, password } where identifier is email or matric_number, or send { email, password } / { matric_number, password }.
  *     requestBody:
  *       required: true
  *       content:
@@ -91,12 +92,18 @@ router.post('/register', registerStudent);
  *           schema:
  *             type: object
  *             required:
- *               - matric_number
  *               - password
  *             properties:
+ *               identifier:
+ *                 type: string
+ *                 description: Email or matriculation number
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Student's email address (alternative)
  *               matric_number:
  *                 type: string
- *                 description: Student's matriculation number
+ *                 description: Student's matriculation number (alternative)
  *               password:
  *                 type: string
  *                 format: password

@@ -179,9 +179,20 @@ Key endpoints documented (all are prefixed with `/api/v1`):
 
 ### 2. Login Student
 
-**POST** `/loginstudent`
+**POST** `/api/v1/student/login`
 
-**Request Body**
+You can authenticate using either an email or a matric number. Examples below show two valid request bodies.
+
+**Request Body (using identifier)**
+
+```json
+{
+  "identifier": "john@example.com",
+  "password": "securepassword123"
+}
+```
+
+**Request Body (using matric_number)**
 
 ```json
 {
