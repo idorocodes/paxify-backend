@@ -7,6 +7,9 @@ const { createRateLimiter } = require('./middleware/auth');
 const logger = require('./utils/logger');
 
 const app = express();
+
+
+app.set('trust proxy', 1);
 const port = process.env.PORT || 3000;
 
 // Import routes
