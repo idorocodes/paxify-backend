@@ -49,8 +49,8 @@ const getProfile = async (req, res) => {
  */
 const updateProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const { first_name, last_name, matric_number, level, phone_number } = req.body;
+  const userId = req.user.id;
+  const { first_name, last_name, faculty, department, matric_number, level, phone_number } = req.body;
 
     // Validate level
     if (level && !['100', '200', '300', '400', '500'].includes(level)) {
@@ -70,7 +70,7 @@ const updateProfile = async (req, res) => {
   if (matric_number) updates.matric_number = matric_number.trim().toUpperCase();
   if (level) updates.level = level;
   if (phone_number) updates.phone_number = phone_number.trim();
-
+     if (department) updates.department = department.trim();
     const { data: user, error } = await supabase
       .from('users')
         .update(updates)
@@ -193,7 +193,7 @@ const getDuePayments = async (req, res) => {
         amount,
         status,
         due_date,
-          const { first_name, last_name, faculty, department, matric_number, level, phone_number } = req.body;
+        description,
         created_at,
         fee_categories:fee_category_id (
           id,
@@ -205,8 +205,8 @@ const getDuePayments = async (req, res) => {
 
     // Filter by status if provided
     if (status) {
+      query = query.eq('status', status);
     } else {
-          if (department) updates.department = department.trim();
       // By default, only show pending and overdue payments
       query = query.in('status', ['pending', 'overdue']);
     }
