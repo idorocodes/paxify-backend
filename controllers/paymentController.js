@@ -219,6 +219,8 @@ const initializePayment = async (req, res) => {
 
         // Pending: return existing initialization details
         if (existing.status === 'pending') {
+          // try to extract a previously saved authorization_url from gateway response
+          const authUrl = existing.payment_gateway_response?.authorization_url || existing.payment_gateway_response?.data?.authorization_url || null;
           return res.status(200).json({
             success: true,
             message: 'Payment already initialized',
@@ -226,7 +228,8 @@ const initializePayment = async (req, res) => {
               payment_id: existing.id,
               reference: existing.reference,
               status: existing.status,
-              total_amount: existing.total_amount
+              total_amount: existing.total_amount,
+              authorization_url: authUrl
             }
           });
         }
