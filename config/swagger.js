@@ -15,12 +15,12 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server',
+        url: 'http://localhost:3000/api/v1',
+        description: 'Development server (with API prefix /api/v1)',
       },
       {
-        url: 'https://api.paxify.com',
-        description: 'Production server',
+        url: 'https://api.paxify.com/api/v1',
+        description: 'Production server (with API prefix /api/v1)',
       },
     ],
     components: {
@@ -171,7 +171,8 @@ const options = {
       },
     ],
   },
-  apis: ['./routes/*.js', './controllers/*.js'], // Path to the API docs
+  // Include nested route folders so swagger picks up JSDoc in subdirectories (e.g. routes/student)
+  apis: ['./routes/**/*.js', './controllers/*.js'], // Path to the API docs
 };
 
 const specs = swaggerJsdoc(options);
