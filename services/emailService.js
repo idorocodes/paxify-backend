@@ -109,8 +109,34 @@ const sendWelcomeEmail = async (email, studentName) => {
   return await sendEmail(email, subject, htmlContent, textContent);
 };
 
+const sendPasswordChangeEmail = async (email, name) => {
+  const subject = 'Password Changed - Paxify';
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #333;">Password Changed</h2>
+      <p>Hi ${name},</p>
+      <p>Your password was successfully changed. If you did not make this change, please contact support immediately.</p>
+      <hr style="border: 1px solid #eee; margin: 30px 0;">
+      <p style="color: #999; font-size: 12px;">This is a security notification from Paxify.</p>
+    </div>
+  `;
+  
+  const textContent = `
+    Password Changed
+
+    Hi ${name},
+    
+    Your password was successfully changed. If you did not make this change, please contact support immediately.
+
+    This is a security notification from Paxify.
+  `;
+
+  return await sendEmail(email, subject, htmlContent, textContent);
+};
+
 module.exports = {
   sendEmail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
+  sendPasswordChangeEmail,
 };

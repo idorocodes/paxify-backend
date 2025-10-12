@@ -18,6 +18,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const feeAssignmentRoutes = require("./routes/feeAssignmentRoutes");
 const studentAuthRoutes = require("./routes/studentAuthRoutes");
+const studentDashboardRoutes = require("./routes/student/dashboardRoutes");
 const adminDepartmentRoutes = require("./routes/adminDepartmentRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
@@ -35,18 +36,30 @@ const apiLimiter = createRateLimiter(
   15 * 60 * 1000, // 15 minutes
   process.env.RATE_LIMIT_MAX_REQUESTS || 100
 );
-app.use('/api/', apiLimiter);
+app.use('/api/v1/', apiLimiter);
+
+// Root route - redirect to API docs
+app.get('/', (req, res) => {
+    res.redirect('/api-docs');
+});
 
 // API Routes
+// Student routes - more specific routes first
+app.use('/api/v1/student/dashboard', studentDashboardRoutes);
+app.use('/api/v1/student/password', require('./routes/student/passwordRoutes'));
 app.use('/api/v1/student', studentAuthRoutes);
+
+// Admin routes - grouped by area
 app.use('/api/v1/admin/auth', adminAuthRoutes);
+app.use('/api/v1/admin/departments', adminDepartmentRoutes);
+app.use('/api/v1/admin/fees', feeAssignmentRoutes);
+app.use('/api/v1/admin', adminRoutes);
+
+// General routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/fees', feeRoutes);
 app.use('/api/v1/payments', paymentRoutes);
-app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
-app.use('/api/v1/admin', feeAssignmentRoutes);
-app.use('/api/v1/admin', adminDepartmentRoutes);
 app.use('/api/v1/departments', departmentRoutes);
 app.use('/api/v1/faculties', facultyRoutes);
 
