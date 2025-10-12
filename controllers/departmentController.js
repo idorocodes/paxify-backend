@@ -37,6 +37,16 @@ const createDepartment = async (req, res) => {
             });
         }
 
+        // Determine actor id (admin middleware attaches req.admin)
+        const actorId = req.admin?.sub || req.admin?.user_id || req.admin?.id || req.user?.id;
+
+        if (!actorId) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+        }
+
         // Create new department
         const { data: department, error } = await supabase
             .from('departments')
@@ -44,7 +54,7 @@ const createDepartment = async (req, res) => {
                 name,
                 code,
                 faculty,
-                created_by: req.user.id,
+                created_by: actorId,
                 is_active: true
             }])
             .select()
@@ -87,8 +97,8 @@ const updateDepartment = async (req, res) => {
         if (faculty) updates.faculty = faculty;
         if (is_active !== undefined) updates.is_active = is_active;
         
-        updates.updated_at = new Date().toISOString();
-        updates.updated_by = req.user.id;
+    updates.updated_at = new Date().toISOString();
+    updates.updated_by = req.admin?.sub || req.admin?.user_id || req.admin?.id || req.user?.id;
 
         // Check if department exists
         const { data: existing, error: checkError } = await supabase
