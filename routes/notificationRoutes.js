@@ -5,7 +5,7 @@ const { getUserNotifications, markNotificationsAsRead } = require('../controller
 
 /**
  * @swagger
- * /notifications:
+ * /api/v1/notifications:
  *   get:
  *     summary: Get user notifications
  *     description: Retrieves paginated list of notifications for the authenticated user
@@ -80,7 +80,7 @@ router.get('/', authenticate, getUserNotifications);
 
 /**
  * @swagger
- * /notifications/mark-read:
+ * /api/v1/notifications/mark-read:
  *   post:
  *     summary: Mark notifications as read
  *     description: Marks specified notifications as read for the authenticated user

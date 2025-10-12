@@ -5,7 +5,7 @@ const feeAssignmentController = require('../controllers/feeAssignmentController'
 
 /**
  * @swagger
- * /admin/fees/assign:
+ * /api/v1/admin/fees/assign:
  *   post:
  *     summary: Assign fees to students
  *     description: Assign fees to students based on level, faculty, or custom group

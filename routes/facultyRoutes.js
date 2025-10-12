@@ -5,7 +5,7 @@ const facultyController = require('../controllers/facultyController');
 
 /**
  * @swagger
- * /admin/faculties:
+ * /api/v1/admin/faculties:
  *   post:
  *     summary: Create a new faculty
  *     description: Create a new academic faculty (Admin only)
@@ -41,7 +41,7 @@ router.post('/faculties', authenticateAdmin, facultyController.createFaculty);
 
 /**
  * @swagger
- * /admin/faculties/{id}:
+ * /api/v1/admin/faculties/{id}:
  *   put:
  *     summary: Update a faculty
  *     description: Update an existing faculty (Admin only)
@@ -84,7 +84,7 @@ router.put('/faculties/:id', authenticateAdmin, facultyController.updateFaculty)
 
 /**
  * @swagger
- * /faculties:
+ * /api/v1/faculties:
  *   get:
  *     summary: Get all faculties
  *     description: Retrieve all active faculties with optional search filtering (Public endpoint)

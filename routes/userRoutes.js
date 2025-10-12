@@ -5,7 +5,7 @@ const userController = require('../controllers/userController');
 
 /**
  * @swagger
- * /users/profile:
+ * /api/v1/users/profile:
  *   get:
  *     summary: Get user profile
  *     description: Retrieves the authenticated user's profile information
@@ -56,7 +56,7 @@ router.get('/profile', authenticate, userController.getProfile);
 
 /**
  * @swagger
- * /users/profile:
+ * /api/v1/users/profile:
  *   put:
  *     summary: Update user profile
  *     description: Update the authenticated user's profile information
@@ -136,7 +136,7 @@ router.put('/profile', authenticate, userController.updateProfile);
 
 /**
  * @swagger
- * /users/change-password:
+ * /api/v1/users/change-password:
  *   put:
  *     summary: Change user password
  *     description: Change the authenticated user's password (requires current password)
@@ -186,7 +186,7 @@ router.put('/change-password', authenticate, userController.changePassword);
 
 /**
  * @swagger
- * /users/payments/due:
+ * /api/v1/users/payments/due:
  *   get:
  *     summary: Get user's due payments
  *     description: Retrieves all pending and overdue payments for the authenticated user

@@ -4,7 +4,7 @@ const departmentController = require('../controllers/departmentController');
 
 /**
  * @swagger
- * /departments:
+ * /api/v1/departments:
  *   get:
  *     summary: Get all departments
  *     description: Retrieve all active departments. Can be filtered by faculty and search term.

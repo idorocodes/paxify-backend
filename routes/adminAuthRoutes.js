@@ -5,7 +5,7 @@ const { authenticateAdmin } = require('../middleware/auth');
 
 /**
  * @swagger
- * /api/admin/register:
+ * /api/v1/admin/auth/register:
  *   post:
  *     summary: Register a new admin (Super admin only)
  *     tags: [Admin Authentication]
@@ -90,7 +90,7 @@ router.post('/register', authenticateAdmin, registerAdmin);
 
 /**
  * @swagger
- * /api/admin/login:
+ * /api/v1/admin/auth/login:
  *   post:
  *     summary: Login an admin
  *     tags: [Admin Authentication]

@@ -5,7 +5,7 @@ const authController = require('../controllers/authController');
 
 /**
  * @swagger
- * /auth/forgot-password:
+ * /api/v1/auth/forgot-password:
  *   post:
  *     summary: Request password reset
  *     description: Send a verification code to the user's email for password reset
@@ -45,7 +45,7 @@ router.post('/forgot-password', authController.forgotPassword);
 
 /**
  * @swagger
- * /auth/verify-code:
+ * /api/v1/auth/verify-code:
  *   post:
  *     summary: Verify reset code
  *     description: Verify the 6-digit code sent to user's email
@@ -84,7 +84,7 @@ router.post('/verify-code', authController.verifyCode);
 
 /**
  * @swagger
- * /auth/reset-password:
+ * /api/v1/auth/reset-password:
  *   post:
  *     summary: Set new password
  *     description: Update user's password after verification

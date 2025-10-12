@@ -4,7 +4,7 @@ const { registerStudent, loginStudent } = require('../controllers/student/authCo
 
 /**
  * @swagger
- * /api/student/register:
+ * /api/v1/student/register:
  *   post:
  *     summary: Register a new student
  *     tags: [Student Authentication]
@@ -80,7 +80,7 @@ router.post('/register', registerStudent);
 
 /**
  * @swagger
- * /api/student/login:
+ * /api/v1/student/login:
  *   post:
  *     summary: Login a student
  *     tags: [Student Authentication]

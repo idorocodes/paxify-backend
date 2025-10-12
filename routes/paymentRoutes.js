@@ -5,7 +5,7 @@ const paymentController = require('../controllers/paymentController');
 
 /**
  * @swagger
- * /payments/initialize:
+ * /api/v1/payments/initialize:
  *   post:
  *     summary: Initialize payment
  *     description: Initialize a new payment with selected fee categories
@@ -76,7 +76,7 @@ router.post('/initialize', authenticate, paymentController.initializePayment);
 
 /**
  * @swagger
- * /payments/verify/{reference}:
+ * /api/v1/payments/verify/{reference}:
  *   get:
  *     summary: Verify payment
  *     description: Verify a payment using its reference
@@ -132,7 +132,7 @@ router.get('/verify/:reference', authenticate, paymentController.verifyPayment);
 
 /**
  * @swagger
- * /payments:
+ * /api/v1/payments:
  *   get:
  *     summary: Get payment history
  *     description: Get authenticated user's payment history
@@ -194,7 +194,7 @@ router.get('/', authenticate, paymentController.getPaymentHistory);
 
 /**
  * @swagger
- * /payments/{id}:
+ * /api/v1/payments/{id}:
  *   get:
  *     summary: Get payment details
  *     description: Get detailed information about a specific payment
@@ -233,7 +233,7 @@ router.get('/:id', authenticate, paymentController.getPaymentDetails);
 
 /**
  * @swagger
- * /payments/{id}/receipt:
+ * /api/v1/payments/{id}/receipt:
  *   get:
  *     summary: Download payment receipt
  *     description: Download the PDF receipt for a completed payment
@@ -269,7 +269,7 @@ router.get('/:id/receipt', authenticate, paymentController.downloadReceipt);
 
 /**
  * @swagger
- * /payments/webhook:
+ * /api/v1/payments/webhook:
  *   post:
  *     summary: Paystack webhook
  *     description: Handle payment webhook events from Paystack

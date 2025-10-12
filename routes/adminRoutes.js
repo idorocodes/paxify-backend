@@ -5,7 +5,7 @@ const adminController = require('../controllers/adminController');
 
 /**
  * @swagger
- * /admin/dashboard/stats:
+ * /api/v1/admin/dashboard/stats:
  *   get:
  *     summary: Get dashboard statistics
  *     description: Retrieve key metrics for admin dashboard
@@ -47,7 +47,7 @@ router.get('/dashboard/stats', authenticateAdmin, adminController.getDashboardSt
 
 /**
  * @swagger
- * /admin/payments:
+ * /api/v1/admin/payments:
  *   get:
  *     summary: Get all payments
  *     description: Retrieve all payments with filtering and pagination
@@ -114,7 +114,7 @@ router.get('/payments', authenticateAdmin, adminController.getAllPayments);
 
 /**
  * @swagger
- * /admin/users:
+ * /api/v1/admin/users:
  *   get:
  *     summary: Get all users
  *     description: Retrieve all users with search and pagination
@@ -168,7 +168,7 @@ router.get('/users', authenticateAdmin, adminController.getAllUsers);
 
 /**
  * @swagger
- * /admin/fees:
+ * /api/v1/admin/fees:
  *   post:
  *     summary: Create fee category
  *     description: Create a new fee category
@@ -221,7 +221,7 @@ router.post('/fees', authenticateAdmin, adminController.createFeeCategory);
 
 /**
  * @swagger
- * /admin/fees/{id}:
+ * /api/v1/admin/fees/{id}:
  *   put:
  *     summary: Update fee category
  *     description: Update an existing fee category
@@ -312,7 +312,7 @@ router.delete('/fees/:id', authenticateAdmin, adminController.deactivateFeeCateg
 
 /**
  * @swagger
- * /admin/reports/revenue:
+ * /api/v1/admin/reports/revenue:
  *   get:
  *     summary: Generate revenue report
  *     description: Generate a PDF report of revenue statistics

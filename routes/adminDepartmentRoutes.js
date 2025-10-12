@@ -5,7 +5,7 @@ const departmentController = require('../controllers/departmentController');
 
 /**
  * @swagger
- * /admin/departments:
+ * /api/v1/admin/departments:
  *   post:
  *     summary: Create a new department
  *     description: Create a new academic department (Admin only)
@@ -49,7 +49,7 @@ router.post('/departments', authenticateAdmin, departmentController.createDepart
 
 /**
  * @swagger
- * /admin/departments/{id}:
+ * /api/v1/admin/departments/{id}:
  *   put:
  *     summary: Update a department
  *     description: Update an existing department (Admin only)
@@ -93,7 +93,7 @@ router.put('/departments/:id', authenticateAdmin, departmentController.updateDep
 
 /**
  * @swagger
- * /admin/departments/{id}:
+ * /api/v1/admin/departments/{id}:
  *   delete:
  *     summary: Delete a department
  *     description: Delete an existing department (Admin only)
