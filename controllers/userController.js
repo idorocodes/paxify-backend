@@ -193,7 +193,7 @@ const getDuePayments = async (req, res) => {
         amount,
         status,
         due_date,
-        description,
+          const { first_name, last_name, faculty, department, matric_number, level, phone_number } = req.body;
         created_at,
         fee_categories:fee_category_id (
           id,
@@ -205,8 +205,8 @@ const getDuePayments = async (req, res) => {
 
     // Filter by status if provided
     if (status) {
-      query = query.eq('status', status);
     } else {
+          if (department) updates.department = department.trim();
       // By default, only show pending and overdue payments
       query = query.in('status', ['pending', 'overdue']);
     }
