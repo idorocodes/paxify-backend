@@ -11,35 +11,17 @@ const getDashboardStats = async (req, res) => {
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-    // Get various statistics in parallel
-    const [
-      { data: totalPayments, error: paymentsError },
-      { data: monthlyPayments, error: monthlyError },
-      { data: activeUsers, error: usersError },
-      { data: recentPayments, error: recentError }
-    ] = await Promise.all([
-      // Total payments
-      supabase.from('payments')
-        .select('total_amount', { count: 'exact' })
-        .eq('status', 'completed'),
-      
-      // Monthly payments
-      supabase.from('payments')
-        .select('total_amount')
-        .eq('status', 'completed')
-        .gte('created_at', firstDayOfMonth.toISOString())
-        .lte('created_at', lastDayOfMonth.toISOString()),
-      
-      // Active users count
-      supabase.from('users')
-        .select('id', { count: 'exact' })
-        .eq('is_active', true),
-      
-      // Recent payments
-      supabase.from('payments')
-        .select(`
+    // Run queries in parallel but keep their full responses so we can access counts
+    const [totalRes, monthlyRes, usersRes, recentRes] = await Promise.all([
+      // select both total_amount and amount to support different DB schemas
+      supabase.from('payments').select('total_amount, amount', { count: 'exact' }).eq('status', 'completed'),
+      supabase.from('payments').select('total_amount, amount').eq('status', 'completed')
+        .gte('created_at', firstDayOfMonth.toISOString()).lte('created_at', lastDayOfMonth.toISOString()),
+      supabase.from('users').select('id', { count: 'exact' }).eq('is_active', true),
+      supabase.from('payments').select(`
           id,
           total_amount,
+          amount,
           status,
           created_at,
           users (
@@ -47,24 +29,34 @@ const getDashboardStats = async (req, res) => {
             last_name,
             email
           )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(5)
+        `).order('created_at', { ascending: false }).limit(5)
     ]);
 
-    if (paymentsError || monthlyError || usersError || recentError) {
-      throw new Error('Error fetching dashboard statistics');
+    // Log any underlying DB errors for easier debugging
+    if (totalRes.error || monthlyRes.error || usersRes.error || recentRes.error) {
+      logger.error('Dashboard stats DB errors:', {
+        totalError: totalRes.error,
+        monthlyError: monthlyRes.error,
+        usersError: usersRes.error,
+        recentError: recentRes.error
+      });
+      return res.status(500).json({ success: false, message: 'Error fetching dashboard statistics' });
     }
 
-    const monthlyTotal = monthlyPayments.reduce((sum, p) => sum + p.total_amount, 0);
+  const totalPaymentsCount = totalRes.count || (totalRes.data ? totalRes.data.length : 0);
+  const totalRevenue = (totalRes.data || []).reduce((sum, p) => sum + Number(p.total_amount ?? p.amount ?? 0), 0);
+
+  const monthlyTotal = (monthlyRes.data || []).reduce((sum, p) => sum + Number(p.total_amount ?? p.amount ?? 0), 0);
+    const activeUsersCount = usersRes.count || 0;
+    const recentPayments = recentRes.data || [];
 
     res.json({
       success: true,
       data: {
-        total_payments: totalPayments.count,
-        total_revenue: totalPayments.reduce((sum, p) => sum + p.total_amount, 0),
+        total_payments: totalPaymentsCount,
+        total_revenue: totalRevenue,
         monthly_revenue: monthlyTotal,
-        active_users: activeUsers.count,
+        active_users: activeUsersCount,
         recent_payments: recentPayments
       }
     });
@@ -213,13 +205,18 @@ const createFeeCategory = async (req, res) => {
       });
     }
 
+    const actorId = req.admin?.sub || req.admin?.user_id || req.admin?.id || req.user?.id;
+    if (!actorId) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
     const { data: fee, error } = await supabase
       .from('fee_categories')
       .insert([{
         name,
         description,
         amount,
-        created_by: req.user.id,
+        created_by: actorId,
         is_active: true
       }])
       .select()
@@ -260,8 +257,8 @@ const updateFeeCategory = async (req, res) => {
     if (name) updates.name = name;
     if (description) updates.description = description;
     if (amount && amount > 0) updates.amount = amount;
-    updates.updated_at = new Date().toISOString();
-    updates.updated_by = req.user.id;
+  updates.updated_at = new Date().toISOString();
+  updates.updated_by = req.admin?.sub || req.admin?.user_id || req.admin?.id || req.user?.id;
 
     const { data: fee, error } = await supabase
       .from('fee_categories')
@@ -300,12 +297,17 @@ const deactivateFeeCategory = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const deactivatedBy = req.admin?.sub || req.admin?.user_id || req.admin?.id || req.user?.id;
+    if (!deactivatedBy) {
+      return res.status(401).json({ success: false, message: 'Authentication required' });
+    }
+
     const { error } = await supabase
       .from('fee_categories')
       .update({
         is_active: false,
         deactivated_at: new Date().toISOString(),
-        deactivated_by: req.user.id
+        deactivated_by: deactivatedBy
       })
       .eq('id', id);
 

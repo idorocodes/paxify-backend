@@ -97,6 +97,6 @@ const feeAssignmentController = require('../controllers/feeAssignmentController'
  *       500:
  *         description: Server error
  */
-router.post('/fees/assign', authenticateAdmin, feeAssignmentController.assignFeeToStudents);
+router.post('/assign', authenticateAdmin, feeAssignmentController.assignFeeToStudents);
 
 module.exports = router;
