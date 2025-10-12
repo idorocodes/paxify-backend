@@ -19,7 +19,6 @@ const { registerStudent, loginStudent } = require('../controllers/student/authCo
  *               - last_name
  *               - email
  *               - password
- *               - matric_number
  *             properties:
  *               first_name:
  *                 type: string

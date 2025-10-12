@@ -16,11 +16,11 @@ const registerStudent = async (req, res) => {
         email = email?.trim().toLowerCase();
         matric_number = matric_number?.trim().toUpperCase();
 
-        // Check for missing fields
-        if (!first_name || !last_name || !email || !password || !matric_number) {
+        // Check for missing required fields
+        if (!first_name || !last_name || !email || !password) {
             return res.status(400).json({
                 success: false,
-                message: "All fields are required"
+                message: "First name, last name, email and password are required"
             });
         }
 
@@ -28,8 +28,9 @@ const registerStudent = async (req, res) => {
         const { data: existing, error: checkError } = await supabase
             .from("users")
             .select("id")
-            .or(`email.eq.${email},matric_number.eq.${matric_number}`)
-            .eq('is_admin', false);
+            .eq('is_admin', false)
+            .eq("email", email)
+            .or(matric_number ? `matric_number.eq.${matric_number}` : 'email.eq.' + email);
 
         if (checkError) {
             console.error("Database check error:", checkError);
