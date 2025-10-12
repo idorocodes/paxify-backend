@@ -50,7 +50,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { first_name, last_name, faculty, matric_number, level } = req.body;
+    const { first_name, last_name, faculty, matric_number, level, phone_number } = req.body;
 
     // Validate level
     if (level && !['100', '200', '300', '400', '500'].includes(level)) {
@@ -65,11 +65,12 @@ const updateProfile = async (req, res) => {
       updated_at: new Date().toISOString()
     };
 
-    if (first_name) updates.first_name = first_name.trim();
-    if (last_name) updates.last_name = last_name.trim();
-    if (faculty) updates.faculty = faculty.trim();
-    if (matric_number) updates.matric_number = matric_number.trim().toUpperCase();
-    if (level) updates.level = level;
+  if (first_name) updates.first_name = first_name.trim();
+  if (last_name) updates.last_name = last_name.trim();
+  if (faculty) updates.faculty = faculty.trim();
+  if (matric_number) updates.matric_number = matric_number.trim().toUpperCase();
+  if (level) updates.level = level;
+  if (phone_number) updates.phone_number = phone_number.trim();
 
     const { data: user, error } = await supabase
       .from('users')
