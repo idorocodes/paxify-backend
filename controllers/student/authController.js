@@ -126,21 +126,14 @@ const registerStudent = async (req, res) => {
  */
 const loginStudent = async (req, res) => {
     try {
-        // Accept either: { identifier, password } where identifier can be email or matric_number
-        // or classic { email, matric_number, password }
-        let { identifier, email, matric_number, password } = req.body;
+        // Accept either: { email, password } or { matric_number, password }
+        // Behavior: If both email and matric_number provided, search OR. Otherwise detect format and try that column first,
+        // then fallback to the other if not found.
+        let { email, matric_number, password } = req.body;
 
         password = password?.trim();
-
-        // Normalize inputs
-        email = email?.trim().toLowerCase();
-        matric_number = matric_number?.trim().toUpperCase();
-        if (identifier) {
-            identifier = identifier.trim();
-            // guess if identifier is email or matric number
-            if (identifier.includes('@')) email = identifier.toLowerCase();
-            else matric_number = identifier.toUpperCase();
-        }
+        email = email?.trim();
+        matric_number = matric_number?.trim();
 
         if ((!email && !matric_number) || !password) {
             return res.status(400).json({
@@ -149,22 +142,61 @@ const loginStudent = async (req, res) => {
             });
         }
 
-        // Build query to find the student by email OR matric_number
-        let query = supabase
-            .from("users")
-            .select("id, first_name, last_name, email, matric_number, password_hash")
-            .eq("is_admin", false);
+        // Helper to fetch by email
+        const fetchByEmail = async (mail) => {
+            const { data, error } = await supabase
+                .from('users')
+                .select('id, first_name, last_name, email, matric_number, password_hash')
+                .eq('email', mail.toLowerCase())
+                .eq('is_admin', false)
+                .single();
+            return { data, error };
+        };
+
+        // Helper to fetch by matric_number
+        const fetchByMatric = async (matric) => {
+            const { data, error } = await supabase
+                .from('users')
+                .select('id, first_name, last_name, email, matric_number, password_hash')
+                .eq('matric_number', matric.toUpperCase())
+                .eq('is_admin', false)
+                .single();
+            return { data, error };
+        };
+
+        let user, error;
 
         if (email && matric_number) {
-            // if both provided, prefer exact match on email first, otherwise try matric_number
-            query = query.or(`email.eq.${email},matric_number.eq.${matric_number}`);
+            // Search OR: either matches
+            const { data, error: orError } = await supabase
+                .from('users')
+                .select('id, first_name, last_name, email, matric_number, password_hash')
+                .or(`email.eq.${email.toLowerCase()},matric_number.eq.${matric_number.toUpperCase()}`)
+                .eq('is_admin', false)
+                .single();
+            user = data;
+            error = orError;
         } else if (email) {
-            query = query.eq('email', email);
+            // If looks like an email, try email first, then matric
+            if (/@/.test(email)) {
+                ({ data: user, error } = await fetchByEmail(email));
+                if (error || !user) {
+                    ({ data: user, error } = await fetchByMatric(email));
+                }
+            } else {
+                // email field provided but not an email -> treat as matric first
+                ({ data: user, error } = await fetchByMatric(email));
+                if (error || !user) {
+                    ({ data: user, error } = await fetchByEmail(email));
+                }
+            }
         } else {
-            query = query.eq('matric_number', matric_number);
+            // only matric_number provided
+            ({ data: user, error } = await fetchByMatric(matric_number));
+            if (error || !user) {
+                ({ data: user, error } = await fetchByEmail(matric_number));
+            }
         }
-
-        const { data: user, error } = await query.single();
 
         if (error || !user) {
             return res.status(401).json({
