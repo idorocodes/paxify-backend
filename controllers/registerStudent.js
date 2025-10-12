@@ -7,15 +7,15 @@ const { sendWelcomeEmail } = require("../services/emailService");
 
 const registerStudent = async (req, res) => {
   try {
-    let { full_name, email, password, matric_no } = req.body;
+    let { full_name, email, password, matric_number } = req.body;
 
     // Trim inputs
     full_name = full_name?.trim();
     email = email?.trim().toLowerCase();
-    matric_no = matric_no?.trim();
+    matric_number = matric_number?.trim();
 
     // Check for missing fields
-    if (!full_name || !email || !password || !matric_no) {
+    if (!full_name || !email || !password || !matric_number) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
@@ -23,7 +23,7 @@ const registerStudent = async (req, res) => {
     const { data: existing, error: checkError } = await supabase
       .from("students")
       .select("id")
-      .or(`email.eq.${email},matric_no.eq.${matric_no}`);
+      .or(`email.eq.${email},matric_number.eq.${matric_number}`);
 
     if (checkError) {
       console.error("Database check error:", checkError);
@@ -46,7 +46,7 @@ const registerStudent = async (req, res) => {
       .insert([{
         full_name,
         email,
-        matric_no,
+        matric_number,
         password_hash: hashed_password,
         created_at: new Date().toISOString(),
       }])
@@ -74,7 +74,7 @@ const registerStudent = async (req, res) => {
       student: {
         full_name: data[0].full_name,
         email: data[0].email,
-        matric_no: data[0].matric_no,
+        matric_number: data[0].matric_number,
       },
     });
   } catch (err) {

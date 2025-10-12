@@ -4,23 +4,23 @@ const bcrypt = require("bcrypt");
 // login with matric no
 const loginStudent = async (req, res) => {
   try {
-    let { matric_no, password } = req.body;
+    let { matric_number, password } = req.body;
 
     // Trim & normalize inputs
-    matric_no = matric_no?.trim().toLowerCase();
+    matric_number = matric_number?.trim().toLowerCase();
     password = password?.trim();
 
-    if (!matric_no || !password) {
+    if (!matric_number || !password) {
       return res
         .status(400)
         .json({ success: false, message: "Matric number and password are required" });
     }
 
-    // Find the student by matric_no
+    // Find the student by matric_number
     const { data: student, error } = await supabase
       .from("students")
-      .select("id, full_name, email, matric_no, password_hash")
-      .eq("matric_no", matric_no)
+      .select("id, full_name, email, matric_number, password_hash")
+      .eq("matric_number", matric_number)
       .single();
 
     // Avoid revealing which part is wrong
@@ -52,7 +52,7 @@ const loginStudent = async (req, res) => {
         id: student.id,
         full_name: student.full_name,
         email: student.email,
-        matric_no: student.matric_no,
+        matric_number: student.matric_number,
       },
     });
   } catch (err) {

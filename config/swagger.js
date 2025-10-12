@@ -27,7 +27,7 @@ const options = {
       schemas: {
         Student: {
           type: 'object',
-          required: ['full_name', 'email', 'password', 'matric_no'],
+          required: ['full_name', 'email', 'password', 'matric_number'],
           properties: {
             id: {
               type: 'integer',
@@ -50,7 +50,7 @@ const options = {
               description: 'Student password',
               minLength: 6,
             },
-            matric_no: {
+            matric_number: {
               type: 'string',
               description: 'Student matriculation number',
               example: 'MAT2023001',
@@ -81,7 +81,7 @@ const options = {
         },
         RegisterRequest: {
           type: 'object',
-          required: ['full_name', 'email', 'password', 'matric_no'],
+          required: ['full_name', 'email', 'password', 'matric_number'],
           properties: {
             full_name: {
               type: 'string',
@@ -100,7 +100,7 @@ const options = {
               description: 'Student password',
               minLength: 6,
             },
-            matric_no: {
+            matric_number: {
               type: 'string',
               description: 'Student matriculation number',
               example: 'MAT2023001',

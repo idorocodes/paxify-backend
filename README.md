@@ -149,7 +149,7 @@ Key endpoints documented:
 {
   "full_name": "Ademide Olamide",
   "email": "john@example.com",
-  "matric_no":"csc/2200/1100"
+  "matric_number":"csc/2200/1100"
   "password": "securepassword123"
 }
 ```
@@ -162,7 +162,7 @@ Key endpoints documented:
   "message": "Student registered successfully",
   "student": {
     "full_name": "Ademide Olamide",
-    "matric_no": "CSC/2023/1095",
+    "matric_number": "CSC/2023/1095",
     "email": "john@example.com"
   }
 }
@@ -185,7 +185,7 @@ Key endpoints documented:
 
 ```json
 {
-  "matric_no": "CSC/2023/1095",
+  "matric_number": "CSC/2023/1095",
   "password": "securepassword123"
 }
 ```
@@ -199,7 +199,7 @@ Key endpoints documented:
   "student": {
     "full_name": "Ademide Olamide",
     "email": "john@example.com",
-    "matric_no": "CSC/2023/1095"
+    "matric_number": "CSC/2023/1095"
   }
 }
 ```
@@ -266,7 +266,7 @@ CREATE TABLE students (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   full_name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
-  matric_no TEXT UNIQUE,
+  matric_number TEXT UNIQUE,
   password_hash TEXT NOT NULL,
   reset_token TEXT,
   reset_token_expiry TIMESTAMPTZ,

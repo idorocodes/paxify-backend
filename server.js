@@ -10,7 +10,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Import routes
-const authRoutes = require("./routes/authRoutes");
+const studentAuthRoutes = require("./routes/studentAuthRoutes");
+const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const userRoutes = require("./routes/userRoutes");
 const feeRoutes = require("./routes/feeRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
@@ -37,7 +38,8 @@ const apiLimiter = createRateLimiter(
 app.use('/api/', apiLimiter);
 
 // API Routes
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/student', studentAuthRoutes);
+app.use('/api/v1/admin/auth', adminAuthRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/fees', feeRoutes);
 app.use('/api/v1/payments', paymentRoutes);
