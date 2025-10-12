@@ -2,6 +2,8 @@ const supabase = require('../config/supabase');
 const paystackService = require('../services/paystackService');
 const fileService = require('../services/fileService');
 const logger = require('../utils/logger');
+const crypto = require('crypto');
+const { generatePaymentReference } = require('../utils/payment');
 
 /**
  * Get list of all payments for a user
@@ -163,7 +165,7 @@ const downloadReceipt = async (req, res) => {
 
 const initializePayment = async (req, res) => {
   try {
-    const { fee_ids } = req.body;
+    const { fee_ids, idempotency_key: clientProvidedKey } = req.body;
     const user_id = req.user?.sub || req.user?.id;
 
     if (!user_id) {
@@ -171,6 +173,82 @@ const initializePayment = async (req, res) => {
         success: false,
         message: 'Authentication required'
       });
+    }
+
+    if (!Array.isArray(fee_ids) || fee_ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'fee_ids must be a non-empty array'
+      });
+    }
+
+    // Compute a derived idempotency key when the client doesn't provide one.
+    const sortedFeeIds = [...fee_ids].map(String).sort();
+    let derivedKey = clientProvidedKey || crypto.createHash('sha256')
+      .update(`${user_id}:${sortedFeeIds.join(',')}`)
+      .digest('hex');
+
+    // If a payment already exists for this idempotency key, return it (idempotent)
+    try {
+      const { data: existing, error: existingErr } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('idempotency_key', derivedKey)
+        .maybeSingle();
+
+      if (existingErr) {
+        logger.warn('Error checking existing idempotency key:', existingErr);
+      }
+
+      if (existing) {
+        // Completed payments are returned as successful
+        if (existing.status === 'completed') {
+          return res.json({
+            success: true,
+            message: 'Payment already completed',
+            data: {
+              payment_id: existing.id,
+              reference: existing.reference,
+              status: existing.status,
+              paid_at: existing.paid_at,
+              total_amount: existing.total_amount,
+              receipt_url: existing.receipt_url
+            }
+          });
+        }
+
+        // Pending: return existing initialization details
+        if (existing.status === 'pending') {
+          // try to extract a previously saved authorization_url from gateway response
+          const authUrl = existing.payment_gateway_response?.authorization_url || existing.payment_gateway_response?.data?.authorization_url || null;
+          return res.status(200).json({
+            success: true,
+            message: 'Payment already initialized',
+            data: {
+              payment_id: existing.id,
+              reference: existing.reference,
+              status: existing.status,
+              total_amount: existing.total_amount,
+              authorization_url: authUrl
+            }
+          });
+        }
+
+        // Failed: server will automatically create a fresh idempotency key and proceed
+        if (existing.status === 'failed') {
+          // create a non-deterministic suffix so we don't collide with previous failed attempts
+          const suffix = crypto.randomBytes(8).toString('hex');
+          // append suffix to derivedKey to create a new unique key for this attempt
+          // this keeps the frontend unchanged while allowing retries after failures
+          // (we don't mutate clientProvidedKey; we only use the new key for DB insert)
+          const newDerivedKey = `${derivedKey}:${suffix}`;
+          // replace derivedKey for subsequent insertion
+          derivedKey = newDerivedKey;
+          logger.info(`Previous payment failed; using new server-generated idempotency key for user ${user_id}`);
+        }
+      }
+    } catch (e) {
+      logger.warn('Idempotency check failed:', e);
     }
 
     // Get user details
@@ -204,29 +282,51 @@ const initializePayment = async (req, res) => {
     // Calculate total amount
     const total_amount = fees.reduce((sum, fee) => sum + fee.amount, 0);
 
-    // Initialize payment in database
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .insert([
-        {
-          user_id,
-          total_amount,
-          status: 'pending',
-          created_at: new Date().toISOString()
-        }
-      ])
-      .select()
-      .single();
+    // Initialize payment in database (include idempotency key)
+    let payment;
+    try {
+      const { data: paymentData, error: paymentError } = await supabase
+        .from('payments')
+        .insert([
+          {
+            user_id,
+            total_amount,
+            amount: total_amount,
+            reference: generatePaymentReference(),
+            status: 'pending',
+            idempotency_key: derivedKey,
+            created_at: new Date().toISOString()
+          }
+        ])
+        .select()
+        .single();
 
-    if (paymentError) {
-      logger.error('Payment creation error:', paymentError);
-      return res.status(500).json({
-        success: false,
-        message: 'Error creating payment'
-      });
+      if (paymentError) {
+        // Handle unique constraint race: try to fetch existing payment by idempotency key
+        logger.warn('Payment creation error (attempting idempotency fallback):', paymentError);
+        const { data: fallback, error: fallbackErr } = await supabase
+          .from('payments')
+          .select('*')
+          .eq('idempotency_key', derivedKey)
+          .maybeSingle();
+
+        if (fallback && !fallbackErr) {
+          payment = fallback;
+        } else {
+          return res.status(500).json({
+            success: false,
+            message: 'Error creating payment'
+          });
+        }
+      } else {
+        payment = paymentData;
+      }
+    } catch (e) {
+      logger.error('Payment creation exception:', e);
+      return res.status(500).json({ success: false, message: 'Error creating payment' });
     }
 
-    // Create payment items
+    // Create payment items (idempotent: payment items for a given payment_id should be unique by payment_id + fee_category_id in DB but we assume clean state)
     const payment_items = fees.map(fee => ({
       payment_id: payment.id,
       fee_category_id: fee.id,
@@ -264,12 +364,13 @@ const initializePayment = async (req, res) => {
       });
     }
 
-    // Update payment reference
+    // Update payment reference and store gateway response (helps idempotency clients later)
     await supabase
       .from('payments')
       .update({
         reference: paymentResult.data.reference,
-        payment_gateway_reference: paymentResult.data.access_code
+        payment_gateway_reference: paymentResult.data.access_code,
+        payment_gateway_response: paymentResult.data
       })
       .eq('id', payment.id);
 

@@ -70,7 +70,44 @@ const updateProfile = async (req, res) => {
   if (matric_number) updates.matric_number = matric_number.trim().toUpperCase();
   if (level) updates.level = level;
   if (phone_number) updates.phone_number = phone_number.trim();
-     if (department) updates.department = department.trim();
+    if (department) {
+      const deptTrim = department.trim();
+
+      // Verify department exists by name or code (case-insensitive)
+      const { data: matchedDept, error: deptError } = await supabase
+        .from('departments')
+        .select('id, name, code')
+        .or(`name.ilike.%${deptTrim}%,code.ilike.%${deptTrim}%`)
+        .eq('is_active', true)
+        .limit(1);
+
+      if (deptError) {
+        logger.error('Department lookup error:', deptError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to verify department'
+        });
+      }
+
+      if (!matchedDept || matchedDept.length === 0) {
+        // provide a few suggestions to help user pick an existing department
+        const { data: suggestions } = await supabase
+          .from('departments')
+          .select('name, code')
+          .eq('is_active', true)
+          .order('name', { ascending: true })
+          .limit(10);
+
+        return res.status(400).json({
+          success: false,
+          message: 'Department not found. Please pick an existing department by name or code.',
+          suggestions: suggestions || []
+        });
+      }
+
+      // Store canonical department name
+      updates.department = matchedDept[0].name;
+    }
     const { data: user, error } = await supabase
       .from('users')
         .update(updates)

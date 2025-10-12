@@ -45,7 +45,7 @@ const departmentController = require('../controllers/departmentController');
  *       500:
  *         description: Server error
  */
-router.post('/departments', authenticateAdmin, departmentController.createDepartment);
+router.post('/', authenticateAdmin, departmentController.createDepartment);
 
 /**
  * @swagger
@@ -89,7 +89,7 @@ router.post('/departments', authenticateAdmin, departmentController.createDepart
  *       500:
  *         description: Server error
  */
-router.put('/departments/:id', authenticateAdmin, departmentController.updateDepartment);
+router.put('/:id', authenticateAdmin, departmentController.updateDepartment);
 
 /**
  * @swagger
@@ -116,6 +116,6 @@ router.put('/departments/:id', authenticateAdmin, departmentController.updateDep
  *       500:
  *         description: Server error
  */
-router.delete('/departments/:id', authenticateAdmin, departmentController.deleteDepartment);
+router.delete('/:id', authenticateAdmin, departmentController.deleteDepartment);
 
 module.exports = router;

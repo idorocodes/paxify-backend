@@ -29,17 +29,38 @@ class NotificationService {
                 .select('id');
 
             // Apply filters based on criteria
-            if (targetType === 'LEVEL' && criteria.level) {
-                query = query.eq('level', criteria.level);
+            // Support both criteria.level (single) and criteria.levels (array)
+            if (targetType === 'LEVEL') {
+                if (Array.isArray(criteria.levels) && criteria.levels.length > 0) {
+                    query = query.in('level', criteria.levels);
+                } else if (criteria.level) {
+                    query = query.eq('level', criteria.level);
+                }
             }
 
-            if (criteria.departments && criteria.departments.length > 0) {
+            // Departments filter (array)
+            if (criteria.departments && Array.isArray(criteria.departments) && criteria.departments.length > 0) {
                 query = query.in('department', criteria.departments);
             }
 
-            if (criteria.studentIds && criteria.studentIds.length > 0) {
-                query = query.in('id', criteria.studentIds);
+            // Student IDs filter (array) - sanitize to valid UUID-like strings
+            if (criteria.studentIds && Array.isArray(criteria.studentIds) && criteria.studentIds.length > 0) {
+                const cleanedIds = criteria.studentIds
+                    .filter(id => typeof id === 'string' && id.trim().length > 0)
+                    .map(id => id.trim());
+
+                if (cleanedIds.length === 0) {
+                    logger.warn('No valid studentIds provided for group notification');
+                    return false;
+                }
+
+                query = query.in('id', cleanedIds);
             }
+
+            // If targetType is 'ALL', no filters are applied (select all active users)
+
+            // Always restrict to active users
+            query = query.eq('is_active', true);
 
             // Get target users
             const { data: users, error: userError } = await query;

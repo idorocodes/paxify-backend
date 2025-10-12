@@ -19,10 +19,19 @@ const assignFeeToStudents = async (req, res) => {
         } = req.body;
 
         // Validate required fields
+        // Allow target_type 'ALL' to assign to all active students
+        const allowedTypes = ['LEVEL', 'FACULTY', 'CUSTOM_GROUP', 'ALL'];
         if (!fee_category_id || !target_type) {
             return res.status(400).json({
                 success: false,
                 message: 'Fee category and target type are required'
+            });
+        }
+
+        if (!allowedTypes.includes(target_type)) {
+            return res.status(400).json({
+                success: false,
+                message: `Invalid target_type. Allowed values: ${allowedTypes.join(', ')}`
             });
         }
 
@@ -46,7 +55,7 @@ const assignFeeToStudents = async (req, res) => {
             .from('fee_categories')
             .select('*')
             .eq('id', fee_category_id)
-            .single();
+            .maybeSingle();
 
         if (feeError || !feeCategory) {
             logger.error('Fee category fetch error:', feeError);
@@ -76,8 +85,11 @@ const assignFeeToStudents = async (req, res) => {
             query = query.in('id', student_ids);
         }
 
-        // Get target students
-        const { data: students, error: studentsError } = await query;
+    // Ensure we only select active non-admin students
+    query = query.eq('is_active', true).neq('is_admin', true);
+
+    // Get target students
+    const { data: students, error: studentsError } = await query;
 
         if (studentsError) {
             logger.error('Students fetch error:', studentsError);
@@ -95,6 +107,11 @@ const assignFeeToStudents = async (req, res) => {
         }
 
         // Create fee assignments and notifications for each student
+        const actorId = req.admin?.sub || req.admin?.user_id || req.admin?.id || req.user?.id;
+        if (!actorId) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
+
         const assignments = students.map(student => ({
             user_id: student.id,
             fee_category_id,
@@ -102,7 +119,7 @@ const assignFeeToStudents = async (req, res) => {
             status: 'pending',
             due_date: due_date || null,
             description: description || null,
-            created_by: req.user.id
+            created_by: actorId
         }));
 
         // Insert fee assignments
@@ -122,13 +139,13 @@ const assignFeeToStudents = async (req, res) => {
         await notificationService.createGroupNotification({
             targetType: target_type,
             criteria: {
-                levels,
-                departments,
-                studentIds: student_ids
+                levels: levels || null,
+                departments: departments || null,
+                studentIds: student_ids || null
             },
             type: 'FEE_ASSIGNED',
             title: 'New Fee Assignment',
-            message: `A new fee of ₦${feeCategory.amount} has been assigned for ${feeCategory.name}`,
+            message: `A new fee of ₦${feeCategory.amount} has been assigned to you as ${feeCategory.name}`,
             metadata: {
                 fee_category_id,
                 fee_name: feeCategory.name,
@@ -137,12 +154,18 @@ const assignFeeToStudents = async (req, res) => {
             }
         });
 
+        const assigned_user_ids = students.map(s => s.id);
+        const assigned_users = students.map(s => ({ id: s.id, email: s.email, name: `${s.first_name} ${s.last_name}` }));
+        logger.info(`Fee assigned by ${actorId} to users: ${assigned_user_ids.join(',')}`);
+
         res.json({
             success: true,
             message: `Fee successfully assigned to ${students.length} students`,
             data: {
                 fee_category: feeCategory,
                 assigned_count: students.length,
+                assigned_user_ids,
+                assigned_users,
                 target_type,
                 levels: levels || null,
                 faculty_ids: faculty_ids || null,

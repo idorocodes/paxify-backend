@@ -46,9 +46,7 @@ const { authenticateAdmin } = require('../middleware/auth');
  *               department:
  *                 type: string
  *                 description: Admin's department (optional)
- *               permissions:
- *                 type: object
- *                 description: Admin's specific permissions (optional)
+
  *     responses:
  *       201:
  *         description: Admin account created successfully
@@ -145,8 +143,6 @@ router.post('/register', authenticateAdmin, registerAdmin);
  *                           type: string
  *                         department:
  *                           type: string
- *                         permissions:
- *                           type: object
  *                     token:
  *                       type: string
  *                       description: JWT authentication token
