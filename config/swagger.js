@@ -20,7 +20,7 @@ const options = {
         description: 'Development server (Swagger paths include /api/v1 prefix)',
       },
       {
-        url: 'https://api.paxify.com',
+        url: 'https://paxify-backend.fly.dev',
         description: 'Production server (Swagger paths include /api/v1 prefix)',
       },
     ],
