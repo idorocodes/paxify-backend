@@ -13,14 +13,15 @@ const options = {
         email: 'support@paxify.com'
       },
     },
+    // servers should point to the server root; documented paths already include the '/api/v1' prefix.
     servers: [
       {
-        url: 'http://localhost:3000/api/v1',
-        description: 'Development server (with API prefix /api/v1)',
+        url: 'http://localhost:3000',
+        description: 'Development server (Swagger paths include /api/v1 prefix)',
       },
       {
-        url: 'https://api.paxify.com/api/v1',
-        description: 'Production server (with API prefix /api/v1)',
+        url: 'https://api.paxify.com',
+        description: 'Production server (Swagger paths include /api/v1 prefix)',
       },
     ],
     components: {
