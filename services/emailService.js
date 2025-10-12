@@ -2,12 +2,35 @@ const nodemailer = require('nodemailer');
 
 // Create transporter (configure this with your email service)
 const createTransporter = () => {
-  return nodemailer.createTransporter({
-    service: process.env.EMAIL_SERVICE || 'gmail',
+  // Support both SMTP_* and EMAIL_* env var names for flexibility
+  const host = process.env.SMTP_HOST;
+  const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined;
+  const secure = process.env.SMTP_SECURE === 'true' || process.env.SMTP_SECURE === '1';
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASSWORD;
+  const service = process.env.EMAIL_SERVICE || undefined;
+
+  // If SMTP host is provided, use direct SMTP transport options
+  if (host) {
+    const opts = {
+      host,
+      port: port || 587,
+      secure: !!secure,
+      auth: {
+        user,
+        pass
+      }
+    };
+    return nodemailer.createTransport(opts);
+  }
+
+  // Fallback to service-based transport (e.g., 'gmail')
+  return nodemailer.createTransport({
+    service: service || 'gmail',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD, // Use app-specific password for Gmail
-    },
+      user,
+      pass
+    }
   });
 };
 
