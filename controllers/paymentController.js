@@ -164,7 +164,14 @@ const downloadReceipt = async (req, res) => {
 const initializePayment = async (req, res) => {
   try {
     const { fee_ids } = req.body;
-    const user_id = req.user.sub;
+    const user_id = req.user?.sub || req.user?.id;
+
+    if (!user_id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
 
     // Get user details
     const { data: user, error: userError } = await supabase
@@ -413,7 +420,13 @@ const verifyPayment = async (req, res) => {
 
 const getPaymentHistory = async (req, res) => {
   try {
-    const user_id = req.user.sub;
+    const user_id = req.user?.sub || req.user?.id;
+    if (!user_id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
     const { page = 1, limit = 20, status } = req.query;
     const offset = (page - 1) * limit;
 
