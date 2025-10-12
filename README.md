@@ -123,19 +123,19 @@ You can use other SMTP providers by changing the `EMAIL_SERVICE` or configuring 
 
 ## 📖 API Documentation
 
-Interactive API documentation is available at `/api-docs` when the server is running. The documentation includes:
+Interactive API documentation is available at `/api-docs` when the server is running. Note: the API uses a versioned base path of `/api/v1` — most endpoints are mounted under this prefix. The documentation includes:
 
 - Complete API reference with request/response schemas
-- Interactive testing interface
+- Interactive testing interface (Try it out will use the server base URL shown in the docs)
 - Authentication requirements
 - Error response examples
 - Data validation rules
 
-Key endpoints documented:
-- `GET /` - Health check
-- `POST /registerstudent` - Student registration
-- `POST /loginstudent` - Student authentication  
-- `POST /forgotpassword` - Password reset request
+Key endpoints documented (all are prefixed with `/api/v1`):
+- `GET /api/v1/health` - Health check
+- `POST /api/v1/student/register` - Student registration
+- `POST /api/v1/student/login` - Student authentication
+- `POST /api/v1/auth/forgot-password` - Password reset request
 
 ## 🗂 API Endpoints
 
