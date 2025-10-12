@@ -10,7 +10,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 // Import routes
-const studentAuthRoutes = require("./routes/studentAuthRoutes");
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const userRoutes = require("./routes/userRoutes");
 const feeRoutes = require("./routes/feeRoutes");
@@ -18,6 +17,7 @@ const paymentRoutes = require("./routes/paymentRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const feeAssignmentRoutes = require("./routes/feeAssignmentRoutes");
+const studentAuthRoutes = require("./routes/studentAuthRoutes");
 const adminDepartmentRoutes = require("./routes/adminDepartmentRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");

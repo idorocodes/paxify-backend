@@ -110,10 +110,20 @@ router.get('/profile', authenticate, userController.getProfile);
  *                       format: email
  *                     first_name:
  *                       type: string
+ *                       description: User's first name
  *                     last_name:
  *                       type: string
- *                     phone_number:
+ *                       description: User's last name
+ *                     matric_number:
  *                       type: string
+ *                       description: Student's matriculation number (optional)
+ *                     faculty:
+ *                       type: string
+ *                       description: Student's faculty
+ *                     level:
+ *                       type: string
+ *                       enum: ['100', '200', '300', '400', '500']
+ *                       description: Student's current level
  *                     updated_at:
  *                       type: string
  *                       format: date-time

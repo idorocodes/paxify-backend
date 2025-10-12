@@ -25,34 +25,40 @@ const options = {
     ],
     components: {
       schemas: {
-        Student: {
+        User: {
           type: 'object',
-          required: ['full_name', 'email', 'password', 'matric_number'],
+          required: ['full_name', 'email', 'password'],
           properties: {
             id: {
-              type: 'integer',
-              description: 'Auto-generated student ID',
-            },
-            full_name: {
               type: 'string',
-              description: 'Full name of the student',
-              example: 'John Doe',
+              format: 'uuid',
+              description: 'Auto-generated user ID',
+            },
+            first_name: {
+              type: 'string',
+              description: 'First name of the user',
+              example: 'John',
+            },
+            last_name: {
+              type: 'string',
+              description: 'Last name of the user',
+              example: 'Doe',
             },
             email: {
               type: 'string',
               format: 'email',
-              description: 'Student email address',
+              description: 'User email address',
               example: 'john.doe@university.edu',
             },
             password: {
               type: 'string',
               format: 'password',
-              description: 'Student password',
+              description: 'User password',
               minLength: 6,
             },
             matric_number: {
               type: 'string',
-              description: 'Student matriculation number',
+              description: 'Student matriculation number (optional)',
               example: 'MAT2023001',
             },
             created_at: {
@@ -62,48 +68,47 @@ const options = {
             },
           },
         },
-        LoginRequest: {
-          type: 'object',
-          required: ['email', 'password'],
-          properties: {
-            email: {
-              type: 'string',
-              format: 'email',
-              description: 'Student email address',
-              example: 'john.doe@university.edu',
-            },
-            password: {
-              type: 'string',
-              format: 'password',
-              description: 'Student password',
-            },
-          },
-        },
         RegisterRequest: {
           type: 'object',
-          required: ['full_name', 'email', 'password', 'matric_number'],
+          required: ['full_name', 'email', 'password'],
           properties: {
             full_name: {
               type: 'string',
-              description: 'Full name of the student',
+              description: 'Full name of the user',
               example: 'John Doe',
             },
             email: {
               type: 'string',
               format: 'email',
-              description: 'Student email address',
+              description: 'User email address',
               example: 'john.doe@university.edu',
             },
             password: {
               type: 'string',
               format: 'password',
-              description: 'Student password',
+              description: 'User password',
               minLength: 6,
             },
             matric_number: {
               type: 'string',
+              description: 'Student matriculation number (optional)',
+              example: 'MAT2023001',
+            },
+          },
+        },
+        LoginRequest: {
+          type: 'object',
+          required: ['matric_number', 'password'],
+          properties: {
+            matric_number: {
+              type: 'string',
               description: 'Student matriculation number',
               example: 'MAT2023001',
+            },
+            password: {
+              type: 'string',
+              format: 'password',
+              description: 'Student password',
             },
           },
         },

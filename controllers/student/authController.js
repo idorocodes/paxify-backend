@@ -8,11 +8,24 @@ const { sendWelcomeEmail } = require("../../services/emailService");
  */
 const registerStudent = async (req, res) => {
     try {
-        let { first_name, last_name, email, password, matric_number } = req.body;
+        let { full_name, email, password, matric_number } = req.body;
+
+        // Split full name into first and last name
+        let first_name, last_name;
+        if (full_name) {
+            const nameParts = full_name.trim().split(' ');
+            first_name = nameParts[0];
+            last_name = nameParts.slice(1).join(' '); // Everything after the first name
+            
+            if (!last_name) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Please provide both first and last name"
+                });
+            }
+        }
 
         // Trim inputs
-        first_name = first_name?.trim();
-        last_name = last_name?.trim();
         email = email?.trim().toLowerCase();
         matric_number = matric_number?.trim().toUpperCase();
 
@@ -73,7 +86,8 @@ const registerStudent = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             { 
-                user_id: data[0].id,
+                id: data[0].id,
+                email: data[0].email,
                 is_admin: false
             },
             process.env.JWT_SECRET,
@@ -158,7 +172,8 @@ const loginStudent = async (req, res) => {
         // Generate JWT token
         const token = jwt.sign(
             { 
-                user_id: user.id,
+                id: user.id,
+                email: user.email,
                 is_admin: false
             },
             process.env.JWT_SECRET,

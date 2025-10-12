@@ -50,18 +50,30 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { first_name, last_name, phone_number, matric_number, department } = req.body;
+    const { first_name, last_name, faculty, matric_number, level } = req.body;
+
+    // Validate level
+    if (level && !['100', '200', '300', '400', '500'].includes(level)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid level. Must be 100, 200, 300, 400, or 500'
+      });
+    }
+
+    // Trim and format inputs
+    const updates = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (first_name) updates.first_name = first_name.trim();
+    if (last_name) updates.last_name = last_name.trim();
+    if (faculty) updates.faculty = faculty.trim();
+    if (matric_number) updates.matric_number = matric_number.trim().toUpperCase();
+    if (level) updates.level = level;
 
     const { data: user, error } = await supabase
       .from('users')
-      .update({
-        first_name,
-        last_name,
-        phone_number,
-        matric_number,
-        department,
-        updated_at: new Date().toISOString()
-      })
+      .update(updates)
       .eq('id', userId)
       .select()
       .single();
