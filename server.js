@@ -58,6 +58,9 @@ app.use('/api/v1/admin/departments', adminDepartmentRoutes);
 app.use('/api/v1/admin/fees', feeAssignmentRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
+// Auth routes (password reset, verify code, reset password)
+app.use('/api/v1/auth', require('./routes/auth/passwordReset'));
+
 // General routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/fees', feeRoutes);

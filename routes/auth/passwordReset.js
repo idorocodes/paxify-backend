@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { validate } = require('../utils/validation');
-const authController = require('../controllers/authController');
+const { validate } = require('../../utils/validation');
+const passwordResetController = require('../../controllers/auth/passwordResetController');
 
 /**
  * @swagger
@@ -41,7 +41,7 @@ const authController = require('../controllers/authController');
  *       404:
  *         description: Email not found
  */
-router.post('/forgot-password', authController.forgotPassword);
+router.post('/forgot-password', passwordResetController.forgotPassword);
 
 /**
  * @swagger
@@ -80,7 +80,6 @@ router.post('/forgot-password', authController.forgotPassword);
  *       400:
  *         description: Invalid or expired code
  */
-router.post('/verify-code', authController.verifyCode);
 
 /**
  * @swagger
@@ -126,6 +125,6 @@ router.post('/verify-code', authController.verifyCode);
  *       400:
  *         description: Invalid request (passwords don't match or invalid code)
  */
-router.post('/reset-password', authController.resetPassword);
+router.post('/reset-password', passwordResetController.resetPassword);
 
 module.exports = router;
