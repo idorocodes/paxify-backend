@@ -28,7 +28,10 @@ const facultyRoutes = require("./routes/facultyRoutes");
 // Middleware
 app.use(helmet()); // Security headers
 app.use(cors({
-  origin: '*',
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -75,13 +78,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
   customSiteTitle: 'Paxify API Documentation'
 }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString()
-  });
-});
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
