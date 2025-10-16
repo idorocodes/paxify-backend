@@ -110,12 +110,62 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error('Unhandled error:', err);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  // Log full error details
+  console.error('\n[ERROR] Request details:', {
+    method: req.method,
+    url: req.url,
+    body: req.body,
+    params: req.params,
+    query: req.query,
+    headers: req.headers
   });
+  console.error('\n[ERROR] Error details:', {
+    name: err.name,
+    message: err.message,
+    stack: err.stack,
+    code: err.code
+  });
+
+  // Log to file system
+  logger.error('API Error:', {
+    error: {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+      code: err.code
+    },
+    request: {
+      method: req.method,
+      url: req.url,
+      body: req.body,
+      params: req.params,
+      query: req.query
+    }
+  });
+
+  // Send response
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+      code: err.code
+    } : undefined
+  });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('\n[UNCAUGHT EXCEPTION]', err);
+  logger.error('Uncaught Exception:', { error: err, stack: err.stack });
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('\n[UNHANDLED REJECTION] At:', promise, '\nReason:', reason);
+  logger.error('Unhandled Rejection:', { reason: reason, promise: promise });
 });
 
 app.listen(port, () => {

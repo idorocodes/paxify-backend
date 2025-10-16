@@ -124,13 +124,12 @@ const loginAdmin = async (req, res) => {
             });
         }
 
-        // Find the admin
-        const { data: user, error } = await supabase
+        // Find the admin - don't use single() to avoid PGRST116 error
+        const { data: users, error } = await supabase
             .from('users')
             .select('id, first_name, last_name, email, password_hash, role, department')
             .eq('email', email)
-            .eq('is_admin', true)
-            .single();
+            .eq('is_admin', true);
 
         if (error) {
             console.error('Database query error (admin login):', error);
@@ -140,6 +139,7 @@ const loginAdmin = async (req, res) => {
             });
         }
 
+        const user = users?.[0];
         if (!user) {
             console.warn(`Admin login attempt: user not found for email=${email}`);
             return res.status(401).json({
