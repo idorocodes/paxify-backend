@@ -13,16 +13,12 @@ const options = {
         email: 'support@paxify.com'
       },
     },
-    // servers should point to the server root; documented paths already include the '/api/v1' prefix.
+    // Use the current origin for API requests
     servers: [
       {
-        url: 'https://paxify-backend.onrender.com/',
-        description: 'Render server (Swagger paths include /api/v1 prefix)',
-      },
-      {
-        url: 'https://paxify-backend.fly.dev',
-        description: 'Flyio server (Swagger paths include /api/v1 prefix)',
-      },
+        url: '/',
+        description: 'Current server'
+      }
     ],
     components: {
       schemas: {

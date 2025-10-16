@@ -2,6 +2,7 @@ const supabase = require("../../database/dbconfig");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { sendWelcomeEmail } = require("../../services/emailService");
+const logger = require("../../utils/logger");
 
 /**
  * Register a new student account
@@ -48,8 +49,8 @@ const registerStudent = async (req, res) => {
             .or(matric_number ? `matric_number.eq.${matric_number}` : 'email.eq.' + email);
 
         if (checkError) {
-            console.error("Database check error:", checkError);
-            return res.status(500).json({ success: false, message: "Database check failed" });
+            logger.error("Database check error:", { error: checkError, email, matric_number });
+            return res.status(500).json({ success: false, message: "Database check failed", error: process.env.NODE_ENV === 'development' ? checkError.message : undefined });
         }
 
         if (existing && existing.length > 0) {
@@ -77,11 +78,15 @@ const registerStudent = async (req, res) => {
             .select('id, first_name, last_name, email, matric_number, created_at');
 
         if (insertError) {
-            console.error("Database insert error:", insertError);
+            logger.error("Database insert error:", { 
+                error: insertError,
+                email,
+                matric_number
+            });
             return res.status(500).json({
                 success: false,
                 message: "Failed to register student",
-                details: insertError.message
+                error: process.env.NODE_ENV === 'development' ? insertError.message : undefined
             });
         }
 
@@ -100,7 +105,11 @@ const registerStudent = async (req, res) => {
         try {
             await sendWelcomeEmail(email, `${first_name} ${last_name}`);
         } catch (emailError) {
-            console.error("Failed to send welcome email:", emailError);
+            logger.error("Failed to send welcome email:", { 
+                error: emailError, 
+                email,
+                name: `${first_name} ${last_name}`
+            });
             // Continue with registration success even if email fails
         }
 
@@ -114,11 +123,16 @@ const registerStudent = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Server error:", err);
+        logger.error("Registration error:", { 
+            error: err,
+            email,
+            matric_number,
+            stack: err.stack
+        });
         res.status(500).json({
             success: false,
             message: "Server error",
-            details: err.message
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
         });
     }
 };
@@ -246,11 +260,16 @@ const loginStudent = async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Login error:", err);
+        logger.error("Login error:", { 
+            error: err,
+            email,
+            matric_number,
+            stack: err.stack
+        });
         res.status(500).json({
             success: false,
             message: "Server error",
-            details: err.message
+            error: process.env.NODE_ENV === 'development' ? err.message : undefined
         });
     }
 };
