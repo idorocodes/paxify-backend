@@ -16,12 +16,12 @@ const options = {
     // servers should point to the server root; documented paths already include the '/api/v1' prefix.
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Development server (Swagger paths include /api/v1 prefix)',
+        url: 'https://paxify-backend.onrender.com/',
+        description: 'Render server (Swagger paths include /api/v1 prefix)',
       },
       {
         url: 'https://paxify-backend.fly.dev',
-        description: 'Production server (Swagger paths include /api/v1 prefix)',
+        description: 'Flyio server (Swagger paths include /api/v1 prefix)',
       },
     ],
     components: {
