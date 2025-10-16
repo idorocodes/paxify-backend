@@ -28,32 +28,29 @@ const facultyRoutes = require("./routes/facultyRoutes");
 // Middleware
 app.use(helmet()); // Security headers
 
-// Enhanced CORS configuration
+// CORS configuration - Allow all origins
 app.use(cors({
-  origin: function(origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://localhost:8081',
-      'https://payifyx.netlify.app',
-      process.env.FRONTEND_URL
-    ].filter(Boolean); // Remove any undefined values
-    
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      logger.warn(`Blocked request from unauthorized origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
   credentials: true,
-  maxAge: 86400 // CORS preflight cache time in seconds (24 hours)
+  maxAge: 86400, // CORS preflight cache time in seconds (24 hours)
+  optionsSuccessStatus: 204
 }));
 
-// Handle preflight requests
-app.options('*', cors());
+// Add CORS error handler
+app.use((err, req, res, next) => {
+  if (err.message.includes('CORS')) {
+    return res.status(403).json({
+      success: false,
+      message: 'CORS Error: Origin not allowed',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+      allowedOrigins: process.env.NODE_ENV === 'development' ? allowedOrigins : undefined
+    });
+  }
+  next(err);
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
