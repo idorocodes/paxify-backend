@@ -9,6 +9,11 @@ const createTransporter = () => {
   const user = process.env.SMTP_USER || process.env.EMAIL_USER;
   const pass = process.env.SMTP_PASS || process.env.EMAIL_PASSWORD;
   const service = process.env.EMAIL_SERVICE || undefined;
+  
+  // Connection timeout settings
+  const connectionTimeout = parseInt(process.env.SMTP_CONNECTION_TIMEOUT, 10) || 10000; // 10 seconds
+  const greetTimeout = parseInt(process.env.SMTP_GREET_TIMEOUT, 10) || 10000; // 10 seconds
+  const socketTimeout = parseInt(process.env.SMTP_SOCKET_TIMEOUT, 10) || 15000; // 15 seconds
 
   // If SMTP host is provided, use direct SMTP transport options
   if (host) {
@@ -19,6 +24,15 @@ const createTransporter = () => {
       auth: {
         user,
         pass
+      },
+      // Connection timeout settings
+      connectionTimeout,
+      greetTimeout,
+      socketTimeout,
+      // TLS options
+      tls: {
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
       }
     };
     return nodemailer.createTransport(opts);
@@ -30,6 +44,15 @@ const createTransporter = () => {
     auth: {
       user,
       pass
+    },
+    // Connection timeout settings
+    connectionTimeout,
+    greetTimeout,
+    socketTimeout,
+    // TLS options
+    tls: {
+      rejectUnauthorized: true,
+      minVersion: 'TLSv1.2'
     }
   });
 };
@@ -47,11 +70,41 @@ const sendEmail = async (to, subject, htmlContent, textContent = '') => {
       html: htmlContent,
     };
 
+    // Verify SMTP configuration before sending
+    try {
+      await transporter.verify();
+    } catch (verifyError) {
+      logger.error('SMTP verification failed:', verifyError);
+      return { 
+        success: false, 
+        error: 'Failed to connect to email server',
+        details: verifyError.message
+      };
+    }
+
     const result = await transporter.sendMail(mailOptions);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Email sending error:', error);
-    return { success: false, error: error.message };
+    logger.error('Email sending error:', {
+      error: error.message,
+      code: error.code,
+      command: error.command,
+      responseCode: error.responseCode,
+      response: error.response
+    });
+    
+    let errorMessage = 'Failed to send email';
+    if (error.code === 'ETIMEDOUT') {
+      errorMessage = 'Connection to email server timed out';
+    } else if (error.code === 'EAUTH') {
+      errorMessage = 'Email authentication failed';
+    }
+
+    return { 
+      success: false, 
+      error: errorMessage,
+      details: error.message
+    };
   }
 };
 
