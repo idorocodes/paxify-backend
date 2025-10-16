@@ -27,8 +27,23 @@ const departmentRoutes = require("./routes/departmentRoutes");
 const facultyRoutes = require("./routes/facultyRoutes");
 // Middleware
 app.use(helmet()); // Security headers
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  'https://payifyx.netlify.app'
+];
 app.use(cors({
-  origin: true,
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
