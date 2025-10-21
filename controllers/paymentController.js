@@ -266,16 +266,41 @@ const initializePayment = async (req, res) => {
     }
 
     // Get fee details
+    console.log('Looking up fees with IDs:', fee_ids);
     const { data: fees, error: feesError } = await supabase
       .from('fee_categories')
       .select('*')
       .in('id', fee_ids)
       .eq('is_active', true);
 
-    if (feesError || !fees.length) {
+    console.log('Fee lookup result:', { fees, feesError });
+    
+    if (feesError) {
+      console.error('Fee lookup error:', feesError);
       return res.status(400).json({
         success: false,
-        message: 'Invalid fee selection'
+        message: 'Error looking up fees',
+        error: feesError.message
+      });
+    }
+    
+    if (!fees || fees.length === 0) {
+      console.log('No active fees found for IDs:', fee_ids);
+      return res.status(400).json({
+        success: false,
+        message: 'No active fees found for the provided IDs'
+      });
+    }
+    
+    // Verify all requested fees were found
+    const foundIds = fees.map(f => f.id);
+    const missingIds = fee_ids.filter(id => !foundIds.includes(id));
+    if (missingIds.length > 0) {
+      console.log('Some fees not found:', missingIds);
+      return res.status(400).json({
+        success: false,
+        message: 'Some fee IDs were not found or are inactive',
+        missing_ids: missingIds
       });
     }
 
