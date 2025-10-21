@@ -1,17 +1,21 @@
--- First, add the new faculty_id column
+-- First ensure the Faculty of Computing Sciences exists
+INSERT INTO faculties (name, code, is_active)
+VALUES ('Faculty of Computing Sciences', 'FCS', true)
+ON CONFLICT (name) DO NOTHING;
+
+-- Add the new faculty_id column
 ALTER TABLE departments
 ADD COLUMN faculty_id UUID REFERENCES faculties(id);
 
--- Copy existing faculty names to a temporary column to maintain data
+-- Set faculty_id for CSC department
 UPDATE departments d
 SET faculty_id = (
     SELECT id 
-    FROM faculties f 
-    WHERE f.name = d.faculty 
-    LIMIT 1
+    FROM faculties 
+    WHERE name = 'Faculty of Computing Sciences'
 );
 
--- Make faculty_id required for new departments
+-- Make faculty_id required
 ALTER TABLE departments
 ALTER COLUMN faculty_id SET NOT NULL;
 

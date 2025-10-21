@@ -85,7 +85,7 @@ const updateProfile = async (req, res) => {
             name
           )
         `)
-        .or(`name.ilike.%${deptTrim}%,code.ilike.%${deptTrim}%`)
+        .or(`name.ilike.${deptTrim},code.ilike.${deptTrim}`)
         .eq('is_active', true)
         .limit(1);
 
