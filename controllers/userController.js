@@ -76,7 +76,7 @@ const updateProfile = async (req, res) => {
       // Verify department exists by name or code (case-insensitive)
       const { data: matchedDept, error: deptError } = await supabase
         .from('departments')
-        .select('id, name, code')
+        .select('id, name, code, faculty_id')
         .or(`name.ilike.%${deptTrim}%,code.ilike.%${deptTrim}%`)
         .eq('is_active', true)
         .limit(1);
@@ -91,28 +91,35 @@ const updateProfile = async (req, res) => {
 
       if (!matchedDept || matchedDept.length === 0) {
         // provide a few suggestions to help user pick an existing department
-        const { data: suggestions } = await supabase
+        const { data: suggestions, error: suggestionsError } = await supabase
           .from('departments')
           .select('name, code')
           .eq('is_active', true)
           .order('name', { ascending: true })
           .limit(10);
 
+        if (suggestionsError) {
+          logger.error('Error fetching department suggestions:', suggestionsError);
+        }
+
         return res.status(400).json({
           success: false,
           message: 'Department not found. Please pick an existing department by name or code.',
-          suggestions: suggestions || []
+          suggestions: suggestions || [],
+          error: true
         });
       }
 
-      // Store canonical department name
+      // Store department details
+      updates.department_id = matchedDept[0].id;
       updates.department = matchedDept[0].name;
+      updates.faculty_id = matchedDept[0].faculty_id;
     }
     const { data: user, error } = await supabase
       .from('users')
         .update(updates)
         .eq('id', userId)
-        .select('id, email, first_name, last_name, phone_number, matric_number, department, level, updated_at')
+        .select('id, email, first_name, last_name, phone_number, matric_number, department, department_id, faculty_id, level, updated_at')
       .single();
 
     if (error) {
