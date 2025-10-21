@@ -110,16 +110,14 @@ const updateProfile = async (req, res) => {
         });
       }
 
-      // Store department details
-      updates.department_id = matchedDept[0].id;
+      // Store department name only since that's what our schema supports
       updates.department = matchedDept[0].name;
-      updates.faculty_id = matchedDept[0].faculty_id;
     }
     const { data: user, error } = await supabase
       .from('users')
         .update(updates)
         .eq('id', userId)
-        .select('id, email, first_name, last_name, phone_number, matric_number, department, department_id, faculty_id, level, updated_at')
+        .select('id, email, first_name, last_name, phone_number, matric_number, department, level, updated_at')
       .single();
 
     if (error) {
