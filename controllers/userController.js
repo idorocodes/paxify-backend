@@ -76,7 +76,15 @@ const updateProfile = async (req, res) => {
       // Verify department exists by name or code (case-insensitive)
       const { data: matchedDept, error: deptError } = await supabase
         .from('departments')
-        .select('id, name, code, faculty_id')
+        .select(`
+          id, 
+          name, 
+          code,
+          faculties:faculty_id (
+            id,
+            name
+          )
+        `)
         .or(`name.ilike.%${deptTrim}%,code.ilike.%${deptTrim}%`)
         .eq('is_active', true)
         .limit(1);
