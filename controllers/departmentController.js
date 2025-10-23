@@ -53,7 +53,7 @@ const createDepartment = async (req, res) => {
             .insert([{
                 name,
                 code,
-                faculty,
+                faculty_id: faculty,
                 created_by: actorId,
                 is_active: true
             }])

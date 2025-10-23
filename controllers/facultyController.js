@@ -14,13 +14,12 @@ const createFaculty = async (req, res) => {
                 message: 'Faculty name and code are required'
             });
         }
-
         const { data: faculty, error } = await supabase
             .from('faculties')
             .insert([{
                 name,
                 code,
-                created_by: req.user.id
+                created_by: req.admin.sub
             }])
             .select()
             .single();

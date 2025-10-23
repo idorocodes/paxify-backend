@@ -72,23 +72,24 @@ app.get('/', (req, res) => {
 app.use('/api/v1/student/dashboard', studentDashboardRoutes);
 app.use('/api/v1/student/password', require('./routes/student/passwordRoutes'));
 app.use('/api/v1/student', studentAuthRoutes);
-
-// Admin routes - grouped by area
-app.use('/api/v1/admin/auth', adminAuthRoutes);
-app.use('/api/v1/admin/departments', adminDepartmentRoutes);
-app.use('/api/v1/admin/fees', feeAssignmentRoutes);
-app.use('/api/v1/admin', adminRoutes);
-
-// Auth routes (password reset, verify code, reset password)
-app.use('/api/v1/auth', require('./routes/auth/passwordReset'));
-
 // General routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/fees', feeRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/departments', departmentRoutes);
-app.use('/api/v1/faculties', facultyRoutes);
+app.use('/api/v1', facultyRoutes);
+
+// Admin routes - grouped by area
+app.use('/api/v1/admin/auth', adminAuthRoutes);
+app.use('/api/v1/admin/departments', adminDepartmentRoutes);
+app.use('/api/v1/admin/fees', feeAssignmentRoutes);
+app.use('/api/v1/admin', adminRoutes);
+// app.use('/api/v1/admin', facultyRoutes);
+
+// Auth routes (password reset, verify code, reset password)
+app.use('/api/v1/auth', require('./routes/auth/passwordReset'));
+
 
 // Swagger UI setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
