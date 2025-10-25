@@ -9,18 +9,18 @@ const assignFeeToStudents = async (req, res) => {
     try {
         const { 
             fee_category_id,
-            target_type,           // 'LEVEL', 'FACULTY', or 'CUSTOM_GROUP'
+            target_type,           // 'LEVEL', 'FACULTY', 'DEPARTMENT', or 'CUSTOM_GROUP'
             levels,                // Array of levels for level-based assignment
-            faculty_ids,          // Array of faculty IDs for faculty-based assignment
-            departments,           // Optional array of departments
-            student_ids,          // Optional array of specific student IDs
-            due_date,             // Optional due date for the payment
-            description           // Optional description
+            faculty_ids,           // Array of faculty IDs for faculty-based assignment
+            departments,           // Array of department IDs for department-based assignment
+            student_ids,           // Optional array of specific student IDs
+            due_date,              // Optional due date for the payment
+            description            // Optional description
         } = req.body;
 
         // Validate required fields
         // Allow target_type 'ALL' to assign to all active students
-        const allowedTypes = ['LEVEL', 'FACULTY', 'CUSTOM_GROUP', 'ALL'];
+        const allowedTypes = ['LEVEL', 'FACULTY', 'DEPARTMENT', 'CUSTOM_GROUP', 'ALL'];
         if (!fee_category_id || !target_type) {
             return res.status(400).json({
                 success: false,
@@ -47,6 +47,20 @@ const assignFeeToStudents = async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'At least one faculty is required for faculty-based fee assignment'
+            });
+        }
+
+        if (target_type === 'DEPARTMENT' && (!departments || !Array.isArray(departments) || departments.length === 0)) {
+            return res.status(400).json({
+                success: false,
+                message: 'At least one department is required for department-based fee assignment'
+            });
+        }
+
+        if (target_type === 'CUSTOM_GROUP' && (!student_ids || !Array.isArray(student_ids) || student_ids.length === 0)) {
+            return res.status(400).json({
+                success: false,
+                message: 'At least one student is required for custom group fee assignment'
             });
         }
 
@@ -81,15 +95,17 @@ const assignFeeToStudents = async (req, res) => {
             if (departments && departments.length > 0) {
                 query = query.in('department', departments);
             }
+        } else if (target_type === 'DEPARTMENT') {
+            query = query.in('department', departments);
         } else if (target_type === 'CUSTOM_GROUP' && student_ids && student_ids.length > 0) {
             query = query.in('id', student_ids);
         }
 
-    // Ensure we only select active non-admin students
-    query = query.eq('is_active', true).neq('is_admin', true);
+        // Ensure we only select active non-admin students
+        query = query.eq('is_active', true).neq('is_admin', true);
 
-    // Get target students
-    const { data: students, error: studentsError } = await query;
+        // Get target students
+        const { data: students, error: studentsError } = await query;
 
         if (studentsError) {
             logger.error('Students fetch error:', studentsError);

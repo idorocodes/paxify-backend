@@ -60,7 +60,7 @@ const updateFaculty = async (req, res) => {
         if (code) updates.code = code;
         if (is_active !== undefined) updates.is_active = is_active;
         updates.updated_at = new Date().toISOString();
-        updates.updated_by = req.user.id;
+        updates.updated_by = req.admin?.sub || null;
 
         const { data: faculty, error } = await supabase
             .from('faculties')
@@ -134,8 +134,63 @@ const getAllFaculties = async (req, res) => {
     }
 };
 
+/**
+ * Delete a faculty (soft delete)
+ */
+const deleteFaculty = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // First, check if the faculty exists and is active
+        const { data: existingFaculty, error: fetchError } = await supabase
+            .from('faculties')
+            .select('id, name')
+            .eq('id', id)
+            .eq('is_active', true)
+            .single();
+
+        if (fetchError || !existingFaculty) {
+            return res.status(404).json({
+                success: false,
+                message: 'Faculty not found or already deleted'
+            });
+        }
+
+        // Soft delete by setting is_active to false
+        const { error } = await supabase
+            .from('faculties')
+            .update({
+                is_active: false,
+                updated_at: new Date().toISOString(),
+                updated_by: req.admin?.sub || null
+            })
+            .eq('id', id);
+
+        if (error) {
+            logger.error('Delete faculty error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to delete faculty'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Faculty deleted successfully'
+        });
+
+    } catch (error) {
+        logger.error('Delete faculty error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
 module.exports = {
     createFaculty,
     updateFaculty,
-    getAllFaculties
+    getAllFaculties,
+    deleteFaculty
 };

@@ -131,6 +131,46 @@ router.post('/admin/faculties', authenticateAdmin, facultyController.createFacul
  */
 router.put('/admin/faculties/:id', authenticateAdmin, facultyController.updateFaculty);
 
-
+/**
+ * @swagger
+ * /api/v1/faculties/{id}:
+ *   delete:
+ *     summary: Delete a faculty (soft delete)
+ *     description: Soft deletes a faculty by setting is_active to false
+ *     tags: [Faculties]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Faculty ID
+ *     responses:
+ *       200:
+ *         description: Faculty deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Faculty deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Admin access required
+ *       404:
+ *         description: Faculty not found or already deleted
+ *       500:
+ *         description: Server error
+ */
+router.delete('/faculties/:id', authenticateAdmin, facultyController.deleteFaculty);
 
 module.exports = router;

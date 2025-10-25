@@ -178,14 +178,26 @@ const createFee = async (req, res) => {
 const updateFee = async (req, res) => {
   try {
     const { id } = req.params;
-    const admin_id = req.admin.sub;
-    const updates = req.body;
+    const admin_id = req.admin?.sub;
+    const {
+      name,
+      description,
+      amount,
+      is_recurring,
+      frequency,
+      is_active
+    } = req.body;
 
-    // Remove non-updatable fields
-    delete updates.id;
-    delete updates.created_by;
-    delete updates.created_at;
-    updates.updated_at = new Date().toISOString();
+    // Only include fields that exist in the fee_categories table
+    const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (description !== undefined) updates.description = description;
+    if (amount !== undefined) updates.amount = amount;
+    if (is_recurring !== undefined) updates.is_recurring = is_recurring;
+    if (frequency !== undefined) updates.frequency = frequency;
+    if (is_active !== undefined) updates.is_active = is_active;
+
+    // Don't include updated_at, let the database trigger handle it
 
     const { data: fee, error } = await supabase
       .from('fee_categories')
@@ -198,7 +210,8 @@ const updateFee = async (req, res) => {
       logger.error('Fee update error:', error);
       return res.status(500).json({
         success: false,
-        message: 'Error updating fee category'
+        message: 'Error updating fee category',
+        error: error.message
       });
     }
 
@@ -209,18 +222,25 @@ const updateFee = async (req, res) => {
       });
     }
 
-    // Create audit log
-    await supabase
-      .from('audit_logs')
-      .insert([
-        {
-          admin_id,
-          action: 'fee_updated',
-          entity_type: 'fee_category',
-          entity_id: fee.id,
-          details: updates
-        }
-      ]);
+    // Create audit log if admin_id is available
+    if (admin_id) {
+      try {
+        await supabase
+          .from('audit_logs')
+          .insert([
+            {
+              admin_id,
+              action: 'fee_updated',
+              entity_type: 'fee_category',
+              entity_id: fee.id,
+              details: updates
+            }
+          ]);
+      } catch (auditError) {
+        logger.error('Audit log error:', auditError);
+        // Don't fail the request if audit logging fails
+      }
+    }
 
     res.json({
       success: true,
@@ -232,7 +252,8 @@ const updateFee = async (req, res) => {
     logger.error('Fee update error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      error: error.message
     });
   }
 };
